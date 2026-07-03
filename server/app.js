@@ -5,7 +5,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
 const { connectDB } = require("./connect_db");
-const { verifyAdmin } = require("./middleware/AdminAuth");
+const { verifyAdmin } = require("./middleware/adminauth");
 /* ================= START SERVER ================= */
 const http = require("http");
 const { initSocket } = require("./socket");
@@ -95,9 +95,14 @@ connectDB()
     // 🔥 INIT SOCKET.IO
     initSocket(server);
 
-    server.listen(5000, () => {
-      console.log("🚀 Server + Socket running on port 5000");
-    });
+    // server.listen(5000, () => {
+    //   console.log("🚀 Server + Socket running on port 5000");
+    // });
+    const PORT = process.env.PORT || 5000;
+
+server.listen(PORT, () => {
+  console.log(`🚀 Server + Socket running on port ${PORT}`);
+});
   })
   .catch(() => {
     console.log("Unable to connect DB");
