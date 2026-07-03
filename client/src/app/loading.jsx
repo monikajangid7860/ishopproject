@@ -1,0 +1,16 @@
+"use client";
+import { motion } from "framer-motion";
+
+export default function Loading() {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen flex items-center justify-center"
+    >
+      <div className="animate-pulse text-gray-500">
+        Loading…
+      </div>
+    </motion.div>
+  );
+}

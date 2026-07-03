@@ -1,0 +1,13 @@
+{
+  "name": "ishopproject",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "server": "cd server && node --watch app",
+    "client": "cd client && npm run dev",
+    "start": "concurrently \"npm run server\" \"npm run client\""
+  },
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
