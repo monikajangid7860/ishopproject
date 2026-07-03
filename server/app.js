@@ -62,7 +62,10 @@ app.use(
 );
 
 /* ================= SESSION ================= */
-
+app.use((req, res, next) => {
+  console.log(req.method, req.originalUrl);
+  next();
+});
 
 /* ================= ROUTES ================= */
 const CategoryRouter = require("./routes/CategoryRoutes");
