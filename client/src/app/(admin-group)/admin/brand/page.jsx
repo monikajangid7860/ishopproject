@@ -6,8 +6,8 @@ import StatusToggleBtn from "@/components/admin/StatusToggleBtn";
 import DeleteBtn from "@/components/admin/DeleteBtn";
 
 export default async function BrandTable(){
-  const brandJSON=await getBrands();
-  const brands=brandJSON.brands;
+  const brandJSON = await getBrands();
+const brands = brandJSON?.brands ?? [];
 
   return(
     <div className="w-full min-h-screen bg-gray-50 p-6">
@@ -41,7 +41,11 @@ export default async function BrandTable(){
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-xl bg-white ring-1 ring-gray-200 shadow-sm flex items-center justify-center overflow-hidden">
                       {brand.image_name?(
-                        <img src={brandJSON.imageUrl+brand.image_name} alt={brand.name} className="w-full h-full object-contain p-1"/>
+                        <img
+  src={`${brandJSON?.imageUrl ?? ""}${brand.image_name}`}
+  alt={brand.name}
+  className="w-full h-full object-contain p-1"
+/>
                       ):(
                         <ImageIcon size={26} className="text-gray-400"/>
                       )}
