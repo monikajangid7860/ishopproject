@@ -1,7 +1,7 @@
 "use client";
 
 import useTrackRecentlyViewed from "@/hooks/useTrackRecentlyViewed";
-import ProductPage from "./productpage";
+import ProductPage from "./ProductPage";
 import ProductTabs from "./ProductTabs";
 import RecentlyViewed from "./RecentlyViewed";
 
