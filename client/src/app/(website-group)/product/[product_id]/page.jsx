@@ -39,7 +39,7 @@ export default async function Page({ params }) {
     ],
     other_images: [
       ...(product.other_images || []).map(
-        (img) => `${imageUrl}/other_images/${img}`
+        (img) => `${imageUrl}other_images/${img}`
       ),
     ]
   };

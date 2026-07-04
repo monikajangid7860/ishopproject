@@ -19,7 +19,7 @@ export default function ProductCard2({ product, imgurl }) {
   const [flyFrom, setFlyFrom] = useState(null);
 
   /* ---------------- IMAGES ---------------- */
-  const BASE_IMAGE_URL = `${imgurl}/main_images/`;
+  const BASE_IMAGE_URL = `${imgurl}main_images/`;
 
   const images = [
     product?.thumbnail ? BASE_IMAGE_URL + product.thumbnail : null,
