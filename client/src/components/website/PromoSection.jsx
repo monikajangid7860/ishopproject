@@ -6,7 +6,7 @@ import watch from '../../../public/images/watch.png';
 export default function PromoSection() {
   return (
     <section className="w-full ">
-      <div className="max-w-7xl  bg-linear-to-r from-teal-600 to-[#4B7BAF] text-white rounded-3xl flex flex-col md:flex-row items-center md:justify-around lg:justify-between py-8 px-3 lg:py-7  md:px-12 gap-10  relative overflow-hidden mx-auto">
+      <div className="max-w-7xl  bg-linear-to-r from-teal-600 to-[#4B7BAF] text-white rounded-3xl flex flex-col md:flex-row items-center md:justify-around lg:justify-between py-15 px-3 lg:py-7  md:px-12 gap-10  relative overflow-hidden mx-auto">
         
         
         <div className=" text-center lg:text-left">
