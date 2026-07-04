@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import {
   Menu,
@@ -609,23 +610,41 @@ useEffect(() => {
     <div className="px-5 py-6">
 
       {/* ================= USER ================= */}
-      <div className="flex items-center gap-4 pb-5 border-b">
-        <div className="h-12 w-12 rounded-full bg-[#01A49E]/10 flex items-center justify-center">
-          <UserIcon className="text-[#01A49E]" size={22} />
+      <Link
+        href={user?._id ? "/profile" : "/login"}
+        onClick={() => setMobileOpen(false)}
+        className="
+          flex items-center justify-between
+          pb-5 border-b
+          hover:bg-gray-50
+          rounded-lg
+          -mx-2 px-2
+          transition
+        "
+      >
+        <div className="flex items-center gap-4">
+          <div className="h-12 w-12 rounded-full bg-[#01A49E]/10 flex items-center justify-center">
+            <UserIcon className="text-[#01A49E]" size={22} />
+          </div>
+
+          <div className="min-w-0">
+            <h3 className="font-semibold text-gray-900 truncate">
+              {user?._id ? user.name : "Welcome Guest"}
+            </h3>
+
+            <p className="text-sm text-gray-500">
+              {user?._id
+                ? "Manage your account"
+                : "Login to continue shopping"}
+            </p>
+          </div>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-gray-900 truncate">
-            {user ? user.name : "Welcome Guest"}
-          </h3>
-
-          <p className="text-sm text-gray-500">
-            {user
-              ? "Manage your account"
-              : "Login to continue shopping"}
-          </p>
-        </div>
-      </div>
+        <ChevronRight
+          size={20}
+          className="text-gray-400 flex-shrink-0"
+        />
+      </Link>
 
       {/* ================= NAVIGATION ================= */}
       <div className="mt-5 space-y-1">
@@ -637,11 +656,11 @@ useEffect(() => {
             className="
               flex items-center
               py-3
+              px-3
+              rounded-lg
               text-[15px]
               font-medium
               text-gray-700
-              rounded-lg
-              px-3
               hover:bg-gray-100
               transition
             "
@@ -664,14 +683,13 @@ useEffect(() => {
             onClick={() => setMobileOpen(false)}
             className="
               relative
-              flex flex-col items-center
-              justify-center
+              flex flex-col items-center justify-center
               gap-2
               rounded-xl
-              border
-              border-gray-200
+              border border-gray-200
               py-4
               hover:bg-gray-50
+              transition
             "
           >
             <Heart size={20} />
@@ -692,14 +710,14 @@ useEffect(() => {
             onClick={() => setMobileOpen(false)}
             className="
               relative
-              flex flex-col items-center
-              justify-center
+              flex flex-col items-center justify-center
               gap-2
               rounded-xl
               bg-[#01A49E]
               text-white
               py-4
               hover:opacity-95
+              transition
             "
           >
             <ShoppingCart size={20} />
@@ -725,12 +743,12 @@ useEffect(() => {
           Account
         </h4>
 
-        {user ? (
+        {user?._id ? (
           <>
             <Link
               href="/profile"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700"
+              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700 transition"
             >
               👤 Profile
             </Link>
@@ -738,7 +756,7 @@ useEffect(() => {
             <Link
               href="/my-orders"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700"
+              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700 transition"
             >
               📦 My Orders
             </Link>
@@ -746,7 +764,7 @@ useEffect(() => {
             <Link
               href="/settings"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700"
+              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700 transition"
             >
               ⚙️ Settings
             </Link>
@@ -786,6 +804,7 @@ useEffect(() => {
                 font-semibold
                 text-white
                 hover:opacity-90
+                transition
               "
             >
               Login
@@ -806,6 +825,7 @@ useEffect(() => {
                 font-semibold
                 text-[#01A49E]
                 hover:bg-[#01A49E]/5
+                transition
               "
             >
               Create Account
