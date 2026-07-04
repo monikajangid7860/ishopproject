@@ -105,12 +105,12 @@ function MultiImageSelector({ product_id, api_url, other_images }) {
                     className="relative border rounded-lg group cursor-pointer"
                     onClick={() =>
                       setZoomImg(
-                        `${process.env.REACT_APP_SERVER_URL}/images/product/other_images/${img}`
+                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/other_images/${img}`
                       )
                     }
                   >
                     <img
-                      src={`${process.env.REACT_APP_SERVER_URL}/images/product/other_images/${img}`}
+                      src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/other_images/${img}`}
                       className="w-full h-[120px] object-cover rounded-lg group-hover:opacity-80"
                     />
 

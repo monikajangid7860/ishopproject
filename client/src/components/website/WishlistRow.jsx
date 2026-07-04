@@ -15,7 +15,7 @@ export default function WishlistRow({ item }) {
   // Defensive image normalization (UNCHANGED)
   const imageSrc = item.image?.startsWith("http")
     ? item.image
-    : `${process.env.REACT_APP_SERVER_URL}/images/product/main_images/${item.image}`;
+    : `${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/main_images/${item.image}`;
 
   /* ===============================
      🔥 LOGIC FIX ONLY (NO UI)
