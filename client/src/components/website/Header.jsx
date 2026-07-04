@@ -600,85 +600,224 @@ useEffect(() => {
   <div
     className="
       lg:hidden
-      origin-top
-      animate-slideDown
       bg-white
       border-t
-      px-4 py-5
-      space-y-5
+      animate-slideDown
+      shadow-lg
     "
   >
-    {/* USER PROFILE */}
-    <div className="flex items-center gap-3 pb-4 border-b">
-      <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-        <UserIcon size={18} className="text-gray-500" />
+    <div className="px-5 py-6">
+
+      {/* ================= USER ================= */}
+      <div className="flex items-center gap-4 pb-5 border-b">
+        <div className="h-12 w-12 rounded-full bg-[#01A49E]/10 flex items-center justify-center">
+          <UserIcon className="text-[#01A49E]" size={22} />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-gray-900 truncate">
+            {user ? user.name : "Welcome Guest"}
+          </h3>
+
+          <p className="text-sm text-gray-500">
+            {user
+              ? "Manage your account"
+              : "Login to continue shopping"}
+          </p>
+        </div>
       </div>
 
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-gray-900">
-          {user?.name || "My Account"}
-        </p>
-        <p className="text-xs text-gray-500 truncate">
-          View profile & orders
-        </p>
+      {/* ================= NAVIGATION ================= */}
+      <div className="mt-5 space-y-1">
+        {navItems.map((item) => (
+          <Link
+            key={item.name}
+            href={item.href}
+            onClick={() => setMobileOpen(false)}
+            className="
+              flex items-center
+              py-3
+              text-[15px]
+              font-medium
+              text-gray-700
+              rounded-lg
+              px-3
+              hover:bg-gray-100
+              transition
+            "
+          >
+            {item.name}
+          </Link>
+        ))}
       </div>
-    </div>
 
-    {/* NAV LINKS */}
-    <div className="space-y-3">
-      {navItems.map((item) => (
-        <Link
-          key={item.name}
-          href={item.href}
-          onClick={() => setMobileOpen(false)}
-          className="
-            block text-sm font-medium text-gray-700
-            hover:text-[#01A49E]
-          "
-        >
-          {item.name}
-        </Link>
-      ))}
-    </div>
+      {/* ================= QUICK ACTIONS ================= */}
+      <div className="mt-6">
+        <h4 className="text-xs uppercase tracking-wider text-gray-400 mb-3">
+          Quick Access
+        </h4>
 
-    {/* DIVIDER */}
-    <div className="h-px bg-gray-200" />
+        <div className="grid grid-cols-2 gap-3">
 
-    {/* ACTION LINKS */}
-    <div className="grid grid-cols-2 gap-3">
-      <Link
-        href="/wishlist"
-        onClick={() => setMobileOpen(false)}
-        className="
-          flex items-center justify-center gap-2
-          rounded-lg border border-gray-200
-          py-3 text-sm font-medium text-gray-700
-          hover:bg-gray-50
-          active:scale-[0.98]
-        "
-      >
-        <Heart size={16} />
-        Wishlist
-      </Link>
+          <Link
+            href="/wishlist"
+            onClick={() => setMobileOpen(false)}
+            className="
+              relative
+              flex flex-col items-center
+              justify-center
+              gap-2
+              rounded-xl
+              border
+              border-gray-200
+              py-4
+              hover:bg-gray-50
+            "
+          >
+            <Heart size={20} />
 
-      <Link
-        href="/cart"
-        onClick={() => setMobileOpen(false)}
-        className="
-          flex items-center justify-center gap-2
-          rounded-lg bg-[#01A49E]
-          py-3 text-sm font-medium text-white
-          hover:opacity-90
-          active:scale-[0.98]
-        "
-      >
-        <ShoppingCart size={16} />
-        Cart
-      </Link>
+            {mounted && wishCount > 0 && (
+              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+                {wishCount}
+              </span>
+            )}
+
+            <span className="text-sm font-medium">
+              Wishlist
+            </span>
+          </Link>
+
+          <Link
+            href="/cart"
+            onClick={() => setMobileOpen(false)}
+            className="
+              relative
+              flex flex-col items-center
+              justify-center
+              gap-2
+              rounded-xl
+              bg-[#01A49E]
+              text-white
+              py-4
+              hover:opacity-95
+            "
+          >
+            <ShoppingCart size={20} />
+
+            {mounted && cartCount > 0 && (
+              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+
+            <span className="text-sm font-medium">
+              Cart
+            </span>
+          </Link>
+
+        </div>
+      </div>
+
+      {/* ================= ACCOUNT ================= */}
+      <div className="mt-6 border-t pt-5">
+
+        <h4 className="text-xs uppercase tracking-wider text-gray-400 mb-3">
+          Account
+        </h4>
+
+        {user ? (
+          <>
+            <Link
+              href="/profile"
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700"
+            >
+              👤 Profile
+            </Link>
+
+            <Link
+              href="/my-orders"
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700"
+            >
+              📦 My Orders
+            </Link>
+
+            <Link
+              href="/settings"
+              onClick={() => setMobileOpen(false)}
+              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700"
+            >
+              ⚙️ Settings
+            </Link>
+
+            <button
+              onClick={() => {
+                handleLogout(dispatch);
+                setMobileOpen(false);
+              }}
+              className="
+                mt-4
+                w-full
+                rounded-xl
+                bg-red-50
+                py-3
+                font-semibold
+                text-red-600
+                hover:bg-red-100
+                transition
+              "
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="
+                block
+                w-full
+                rounded-xl
+                bg-[#01A49E]
+                py-3
+                text-center
+                font-semibold
+                text-white
+                hover:opacity-90
+              "
+            >
+              Login
+            </Link>
+
+            <Link
+              href="/signup"
+              onClick={() => setMobileOpen(false)}
+              className="
+                block
+                mt-3
+                w-full
+                rounded-xl
+                border
+                border-[#01A49E]
+                py-3
+                text-center
+                font-semibold
+                text-[#01A49E]
+                hover:bg-[#01A49E]/5
+              "
+            >
+              Create Account
+            </Link>
+          </>
+        )}
+
+      </div>
+
     </div>
   </div>
 )}
-
 
     </header>
   );

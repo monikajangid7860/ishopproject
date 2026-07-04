@@ -66,12 +66,12 @@ import ProductCard2 from "./ProductCard2.jsx";
 
 export default function BestSellerSlider({ products, imgurl }) {
   const [emblaRef, embla] = useEmblaCarousel({
-    loop: false,
-    align: "start",
-    dragFree: false,
-    skipSnaps: false,
-    containScroll: "trimSnaps",
-  });
+  loop: false,
+  align: "start",
+  dragFree: true,
+  containScroll: "trimSnaps",
+  watchDrag: true,
+});
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [scrollSnaps, setScrollSnaps] = useState([]);
@@ -97,7 +97,7 @@ export default function BestSellerSlider({ products, imgurl }) {
   }, [embla, onSelect]);
 
   return (
-    <section className="pb-10">
+    <section className="p-10">
       <h2 className="text-2xl lg:text-[25px] font-semibold text-gray-900 mb-4 px-4 md:px-0">
         BEST SELLER IN THIS CATEGORY
       </h2>
