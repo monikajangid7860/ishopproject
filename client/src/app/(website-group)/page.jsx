@@ -18,6 +18,7 @@ import { topcategories } from "@/api-calls/product";
 import { getProducts } from "@/api-calls/products";
 import MotionWrapper from "@/components/common/MotionWrapper";
 import ScrollReveal from "@/components/animations/ScrollReveal";
+import BestSellerSlider from "@/components/website/BestSellerSlider";
 
 async function page()
 {
@@ -39,13 +40,13 @@ async function page()
       <PromoSection />
       </ScrollReveal>
       <ScrollReveal>
-      <BestSellerCarousel products={products}  imgurl={imgurl} />
+      <BestSellerSlider products={products}  imgurl={imgurl} />
       </ScrollReveal>
       <ScrollReveal>
       <TopCellphonesSection {...phoneSection} />
       </ScrollReveal>
       <ScrollReveal>
-      <BestSellerCarousel products={products} imgurl={imgurl} />
+      <BestSellerSlider products={products} imgurl={imgurl} />
       </ScrollReveal>
       <ScrollReveal>
       <TopCellphonesSection {...laptopSection} />
