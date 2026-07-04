@@ -11,7 +11,7 @@ const getData = async (req, res) => {
             message: "Brand Find",
             flag: 1,
             brands,
-            imageUrl: "http://localhost:5000/images/brand/"
+            imageUrl: `${process.env.SERVER_URL}/images/brand/`
         })
 
     } catch (error) {
@@ -26,7 +26,7 @@ const getDataById = async (req, res) => {
             message: "Brand Find",
             flag: 1,
             brand,
-            imageUrl: "http://localhost:5000/images/brand/"
+            imageUrl: `${process.env.SERVER_URL}/images/brand/`
         })
 
     } catch (error) {

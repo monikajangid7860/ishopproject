@@ -37,7 +37,7 @@ const getData = async (req, res) => {
             message: "Category Find",
             flag: 1,
             categories,
-            imageUrl: "http://localhost:5000/images/category/"
+            imageUrl: `${process.env.SERVER_URL}/images/category/`
         })
     } catch (error) {
         console.log(error)
@@ -53,7 +53,7 @@ const getDataById = async (req, res) => {
             message: "Category Find",
             flag: 1,
             category,
-            imageUrl: "http://localhost:5000/images/category/"
+            imageUrl: `${process.env.SERVER_URL}/images/category/`
         })
 
     } catch (error) {

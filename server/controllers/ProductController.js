@@ -89,7 +89,7 @@ const getData = async (req, res) => {
       message: "Product Found",
       flag: 1,
       products,
-      imageUrl: "http://localhost:5000/images/product/",
+      imageUrl: `${process.env.SERVER_URL}/images/product/`,
     });
   } catch (error) {
     console.log(error);
@@ -115,7 +115,7 @@ const getProductById = async (req, res) => {
       message: "Product Found",
       flag: 1,
       product,
-      imageUrl: "http://localhost:5000/images/product/",
+      imageUrl: `${process.env.SERVER_URL}/images/product/`,
     });
   } catch (error) {
     console.log(error);
