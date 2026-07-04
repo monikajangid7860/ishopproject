@@ -52,7 +52,7 @@ async function page()
       <TopCellphonesSection {...laptopSection} />
       </ScrollReveal>
       <ScrollReveal>
-      <BestSellerCarousel products={products} imgurl={imgurl} />
+      <BestSellerSlider products={products} imgurl={imgurl} />
       </ScrollReveal>
       <ScrollReveal>
       <CategoryBlockSection />
