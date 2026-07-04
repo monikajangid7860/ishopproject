@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
   reactCompiler: true,
-  /** @type {import('next').NextConfig} */
 
   images: {
     remotePatterns: [
@@ -12,12 +10,13 @@ const nextConfig = {
         port: "5000",
         pathname: "/images/**",
       },
+      {
+        protocol: "https",
+        hostname: "ishopproject-production.up.railway.app",
+        pathname: "/images/**",
+      },
     ],
   },
 };
-
-
-
-
 
 export default nextConfig;

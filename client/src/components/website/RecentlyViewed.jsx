@@ -38,7 +38,7 @@ export default function RecentlyViewed() {
 
               {/* Image */}
               <div className="shrink-0 relative w-[86px] h-[86px] rounded-md overflow-hidden bg-white">
-                   <img src={`http://localhost:5000/images/product/main_images/${product.thumbnail}`} alt={product.name} />
+                   <img src={`{process.env.REACT_APP_SERVER_URL}/images/product/main_images/${product.thumbnail}`} alt={product.name} />
               </div>
 
               {/* Details */}
