@@ -293,7 +293,7 @@ export default function FilterControlsMobile({
       )}
 
       {/* SPACER */}
-      <div className="lg:hidden h-20" />
+      {/* <div className="lg:hidden h-20" /> */}
     </>
   );
 }
