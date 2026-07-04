@@ -43,6 +43,23 @@ app.use(cookieParser());
 //   })
 // );
 // app.set("trust proxy", 1);
+// const allowedOrigins = [
+//   "http://localhost:3000",
+//   process.env.CLIENT_URL,
+// ];
+
+// app.use(
+//   cors({
+//     origin: function (origin, callback) {
+//       if (!origin || allowedOrigins.includes(origin)) {
+//         return callback(null, true);
+//       }
+
+//       callback(new Error("Not allowed by CORS"));
+//     },
+//     credentials: true,
+//   })
+// );
 const allowedOrigins = [
   "http://localhost:3000",
   process.env.CLIENT_URL,
@@ -50,17 +67,27 @@ const allowedOrigins = [
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+    origin(origin, callback) {
+      // Allow requests without an Origin (Postman, server-to-server, etc.)
+      if (!origin) {
         return callback(null, true);
       }
 
-      callback(new Error("Not allowed by CORS"));
+      // Allow localhost
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Allow ALL Vercel deployments (preview + production)
+      if (origin.endsWith(".vercel.app")) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   })
 );
-
 /* ================= SESSION ================= */
 app.use((req, res, next) => {
   console.log(req.method, req.originalUrl);

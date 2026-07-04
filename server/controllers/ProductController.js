@@ -350,7 +350,7 @@ const getProductsByIds = async (req, res) => {
       return res.send({
         flag: 1,
         products: [],
-        imageUrl: "http://localhost:5000/images/product/",
+        imageUrl: `${process.env.SERVER_URL}/images/product/`,
       });
     }
 
@@ -374,7 +374,7 @@ const getProductsByIds = async (req, res) => {
     res.send({
       flag: 1,
       products: orderedProducts,
-      imageUrl: "http://localhost:5000/images/product/",
+      imageUrl: `${process.env.SERVER_URL}/images/product/`,
     });
   } catch (error) {
     console.log("getProductsByIds error:", error);
