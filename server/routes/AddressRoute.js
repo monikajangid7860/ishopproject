@@ -8,7 +8,7 @@ const { verifyWebsiteUser } = require("../middleware/websiteauth");
 
 const router = express.Router();
 
-router.get("/", verifyWebsiteUser, getAddresses);
+router.get("/",  getAddresses);
 router.post("/", addAddress);
 router.put("/:addressId", verifyWebsiteUser, updateAddress);
 
