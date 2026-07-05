@@ -46,6 +46,7 @@ export default function CheckoutClient() {
         if (res.data.flag) {
           setAddresses(res.data.addresses);
         }
+        
       } catch (err) {
         console.error("Fetch address error", err);
         notify("error", "Failed to load addresses");
