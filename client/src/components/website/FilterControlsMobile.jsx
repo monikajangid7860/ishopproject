@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   usePathname,
   useSearchParams,
@@ -44,6 +45,11 @@ export default function FilterControlsMobile({
   const searchParams = useSearchParams();
 
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   /* ---------------- URL DERIVED STATE ---------------- */
 
@@ -53,12 +59,15 @@ export default function FilterControlsMobile({
   const selectedColors =
     searchParams.get("colors")?.split("_") || [];
 
+  const selectedCategory = searchParams.get("category") || null;
+
   const sortBy = Number(searchParams.get("sortby")) || 1;
   const limit = Number(searchParams.get("limit")) || 2;
 
   const activeCount =
     selectedBrands.length +
     selectedColors.length +
+    (selectedCategory ? 1 : 0) +
     (sortBy !== 1 ? 1 : 0) +
     (limit !== 2 ? 1 : 0);
 
@@ -104,6 +113,13 @@ export default function FilterControlsMobile({
     );
   }
 
+  function selectCategory(slug) {
+    updateSingleParam(
+      "category",
+      selectedCategory === slug ? null : slug
+    );
+  }
+
   function resetAll() {
     router.replace(pathname, { scroll: false });
   }
@@ -115,10 +131,251 @@ export default function FilterControlsMobile({
     return () => (document.body.style.overflow = "");
   }, [open]);
 
+  /* ---------------- SHEET MARKUP ---------------- */
+
+  const sheet = (
+    <div className="fixed inset-0" style={{ zIndex: 2147483647 }}>
+      {/* OVERLAY */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={() => setOpen(false)}
+      />
+
+      {/* SHEET */}
+      <div
+        className="
+          absolute inset-x-0 bottom-0 h-[90vh] bg-white
+          rounded-t-[28px] flex flex-col overflow-hidden
+          shadow-[0_-8px_40px_-4px_rgba(0,0,0,0.25)]
+        "
+      >
+        {/* HANDLE */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0">
+          <span className="h-1 w-9 rounded-full bg-zinc-200" />
+        </div>
+
+        {/* HEADER */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 shrink-0">
+          <div>
+            <span className="text-base font-semibold text-[#0F1115]">
+              Filters & Sorting
+            </span>
+            {activeCount > 0 && (
+              <span className="ml-2 text-xs font-medium text-[#FF5A1F]">
+                {activeCount} active
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => setOpen(false)}
+            className="
+              flex h-8 w-8 items-center justify-center rounded-full
+              bg-zinc-100 text-zinc-500 active:scale-95 transition-transform
+            "
+          >
+            <X size={16} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        {/* CONTENT */}
+        <div className="flex-1 overflow-y-auto px-5 py-6 space-y-8">
+
+          {/* SORT BY */}
+          <div>
+            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
+              Sort By
+            </h4>
+
+            <div className="grid grid-cols-2 gap-2">
+              {SORT_OPTIONS.map((opt) => {
+                const active = sortBy === opt.value;
+                const Icon = opt.icon;
+
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => updateSingleParam("sortby", opt.value)}
+                    className={`
+                      flex items-center gap-2 rounded-xl border px-3 py-2.5
+                      text-xs font-medium leading-tight transition-colors
+                      ${
+                        active
+                          ? "bg-[#0F1115] text-white border-[#0F1115]"
+                          : "bg-zinc-50 text-zinc-600 border-zinc-200 active:bg-zinc-100"
+                      }
+                    `}
+                  >
+                    <Icon
+                      size={14}
+                      strokeWidth={2.25}
+                      className={active ? "text-[#FF5A1F]" : "text-zinc-400"}
+                    />
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* LIMIT */}
+          <div>
+            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
+              Show
+            </h4>
+
+            <div className="grid grid-cols-4 gap-2">
+              {[2, 4, 8, 0].map((val) => {
+                const active = limit === val;
+
+                return (
+                  <button
+                    key={val}
+                    onClick={() => updateSingleParam("limit", val)}
+                    className={`
+                      rounded-xl border py-2.5 text-xs font-semibold
+                      transition-colors
+                      ${
+                        active
+                          ? "bg-[#0F1115] text-white border-[#0F1115]"
+                          : "bg-zinc-50 text-zinc-600 border-zinc-200 active:bg-zinc-100"
+                      }
+                    `}
+                  >
+                    {val === 0 ? "All" : val}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* CATEGORY */}
+          <div>
+            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
+              Category
+            </h4>
+            <CategoryList
+              categories={categories}
+              selected={selectedCategory}
+              onSelect={selectCategory}
+            />
+          </div>
+
+          {/* BRANDS */}
+          <div>
+            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
+              Brands
+            </h4>
+            <div className="space-y-1">
+              {brands.map((b) => {
+                const active = selectedBrands.includes(b.slug);
+                return (
+                  <label
+                    key={b.slug}
+                    onClick={() => toggleBrand(b.slug)}
+                    className={`
+                      flex items-center justify-between gap-3 rounded-xl px-3 py-2.5
+                      cursor-pointer transition-colors
+                      ${active ? "bg-zinc-50" : "hover:bg-zinc-50/60"}
+                    `}
+                  >
+                    <span className="text-sm text-zinc-700">{b.name}</span>
+                    <span
+                      className={`
+                        flex h-5 w-5 shrink-0 items-center justify-center rounded-md border
+                        transition-colors
+                        ${
+                          active
+                            ? "bg-[#0F1115] border-[#0F1115]"
+                            : "border-zinc-300 bg-white"
+                        }
+                      `}
+                    >
+                      {active && (
+                        <Check size={12} strokeWidth={3} className="text-white" />
+                      )}
+                    </span>
+                    <span className="sr-only">
+                      <FilterCheckbox
+                        label={b.name}
+                        checked={active}
+                        onChange={() => toggleBrand(b.slug)}
+                      />
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* COLORS */}
+          <div>
+            <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
+              Colors
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {colors.map((c) => {
+                const slug = c.slug || makeSlug(c.name);
+                const active = selectedColors.includes(slug);
+                const swatch = c.hex || null;
+
+                return (
+                  <button
+                    key={slug}
+                    onClick={() => toggleColor(slug)}
+                    className={`
+                      flex items-center gap-1.5 rounded-full border pl-2.5 pr-3 py-1.5
+                      text-xs font-medium transition-colors
+                      ${
+                        active
+                          ? "bg-[#0F1115] text-white border-[#0F1115]"
+                          : "bg-zinc-50 text-zinc-600 border-zinc-200"
+                      }
+                    `}
+                  >
+                    <span
+                      className="h-2.5 w-2.5 rounded-full border border-black/10 bg-zinc-300"
+                      style={swatch ? { backgroundColor: swatch } : undefined}
+                    />
+                    {c.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* FOOTER */}
+        <div className="border-t border-zinc-100 bg-white p-4 flex gap-3 shrink-0">
+          <button
+            onClick={resetAll}
+            className="
+              flex-1 flex items-center justify-center gap-2 rounded-xl
+              border border-zinc-200 py-3.5 text-sm font-medium text-zinc-600
+              active:scale-[0.98] transition-transform
+            "
+          >
+            <RotateCcw size={14} strokeWidth={2.25} />
+            Reset
+          </button>
+          <button
+            onClick={() => setOpen(false)}
+            className="
+              flex-1 rounded-xl bg-[#0F1115] py-3.5
+              text-sm font-semibold text-white
+              shadow-sm active:scale-[0.98] transition-transform
+            "
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <>
       {/* ================= BOTTOM BAR ================= */}
-      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 px-4 pb-4">
+      <div className="lg:hidden fixed bottom-0 inset-x-0 px-4 pb-4" style={{ zIndex: 2147483646 }}>
         <button
           onClick={() => setOpen(true)}
           className="
@@ -145,247 +402,8 @@ export default function FilterControlsMobile({
         </button>
       </div>
 
-      {/* ================= BOTTOM SHEET ================= */}
-      {open && (
-        <div className="fixed inset-0 z-[9999]">
-          {/* OVERLAY */}
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-[fadeIn_.15s_ease-out]"
-            onClick={() => setOpen(false)}
-          />
-
-          {/* SHEET */}
-          <div
-            className="
-              absolute inset-x-0 bottom-0 h-[90vh] bg-white
-              rounded-t-[28px] flex flex-col overflow-hidden
-              shadow-[0_-8px_40px_-4px_rgba(0,0,0,0.25)]
-              animate-[slideUp_.2s_ease-out]
-            "
-          >
-            {/* HANDLE */}
-            <div className="flex justify-center pt-3 pb-1 shrink-0">
-              <span className="h-1 w-9 rounded-full bg-zinc-200" />
-            </div>
-
-            {/* HEADER */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 shrink-0">
-              <div>
-                <span className="text-base font-semibold text-[#0F1115]">
-                  Filters & Sorting
-                </span>
-                {activeCount > 0 && (
-                  <span className="ml-2 text-xs font-medium text-[#FF5A1F]">
-                    {activeCount} active
-                  </span>
-                )}
-              </div>
-              <button
-                onClick={() => setOpen(false)}
-                className="
-                  flex h-8 w-8 items-center justify-center rounded-full
-                  bg-zinc-100 text-zinc-500 active:scale-95 transition-transform
-                "
-              >
-                <X size={16} strokeWidth={2.5} />
-              </button>
-            </div>
-
-            {/* CONTENT */}
-            <div className="flex-1 overflow-y-auto px-5 py-6 space-y-8">
-
-              {/* SORT BY */}
-              <div>
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
-                  Sort By
-                </h4>
-
-                <div className="grid grid-cols-2 gap-2">
-                  {SORT_OPTIONS.map((opt) => {
-                    const active = sortBy === opt.value;
-                    const Icon = opt.icon;
-
-                    return (
-                      <button
-                        key={opt.value}
-                        onClick={() => updateSingleParam("sortby", opt.value)}
-                        className={`
-                          flex items-center gap-2 rounded-xl border px-3 py-2.5
-                          text-xs font-medium leading-tight transition-colors
-                          ${
-                            active
-                              ? "bg-[#0F1115] text-white border-[#0F1115]"
-                              : "bg-zinc-50 text-zinc-600 border-zinc-200 active:bg-zinc-100"
-                          }
-                        `}
-                      >
-                        <Icon
-                          size={14}
-                          strokeWidth={2.25}
-                          className={active ? "text-[#FF5A1F]" : "text-zinc-400"}
-                        />
-                        {opt.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* LIMIT */}
-              <div>
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
-                  Show
-                </h4>
-
-                <div className="grid grid-cols-4 gap-2">
-                  {[2, 4, 8, 0].map((val) => {
-                    const active = limit === val;
-
-                    return (
-                      <button
-                        key={val}
-                        onClick={() => updateSingleParam("limit", val)}
-                        className={`
-                          rounded-xl border py-2.5 text-xs font-semibold
-                          transition-colors
-                          ${
-                            active
-                              ? "bg-[#0F1115] text-white border-[#0F1115]"
-                              : "bg-zinc-50 text-zinc-600 border-zinc-200 active:bg-zinc-100"
-                          }
-                        `}
-                      >
-                        {val === 0 ? "All" : val}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* CATEGORY */}
-              <div>
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
-                  Category
-                </h4>
-                <CategoryList
-                  categories={categories}
-                  selected={null}
-                  onSelect={() => {}}
-                />
-              </div>
-
-              {/* BRANDS */}
-              <div>
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
-                  Brands
-                </h4>
-                <div className="space-y-1">
-                  {brands.map((b) => {
-                    const active = selectedBrands.includes(b.slug);
-                    return (
-                      <label
-                        key={b.slug}
-                        onClick={() => toggleBrand(b.slug)}
-                        className={`
-                          flex items-center justify-between gap-3 rounded-xl px-3 py-2.5
-                          cursor-pointer transition-colors
-                          ${active ? "bg-zinc-50" : "hover:bg-zinc-50/60"}
-                        `}
-                      >
-                        <span className="text-sm text-zinc-700">{b.name}</span>
-                        <span
-                          className={`
-                            flex h-5 w-5 shrink-0 items-center justify-center rounded-md border
-                            transition-colors
-                            ${
-                              active
-                                ? "bg-[#0F1115] border-[#0F1115]"
-                                : "border-zinc-300 bg-white"
-                            }
-                          `}
-                        >
-                          {active && (
-                            <Check size={12} strokeWidth={3} className="text-white" />
-                          )}
-                        </span>
-                        {/* keep original checkbox in DOM but visually hidden, in case
-                            FilterCheckbox carries its own accessible input semantics */}
-                        <span className="sr-only">
-                          <FilterCheckbox
-                            label={b.name}
-                            checked={active}
-                            onChange={() => toggleBrand(b.slug)}
-                          />
-                        </span>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* COLORS */}
-              <div>
-                <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
-                  Colors
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {colors.map((c) => {
-                    const slug = c.slug || makeSlug(c.name);
-                    const active = selectedColors.includes(slug);
-
-                    return (
-                      <button
-                        key={slug}
-                        onClick={() => toggleColor(slug)}
-                        className={`
-                          flex items-center gap-1.5 rounded-full border pl-2.5 pr-3 py-1.5
-                          text-xs font-medium transition-colors
-                          ${
-                            active
-                              ? "bg-[#0F1115] text-white border-[#0F1115]"
-                              : "bg-zinc-50 text-zinc-600 border-zinc-200"
-                          }
-                        `}
-                      >
-                        <span
-                          className="h-2.5 w-2.5 rounded-full border border-black/10"
-                          style={{ backgroundColor: c.hex || c.name?.toLowerCase() }}
-                        />
-                        {c.name}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* FOOTER */}
-            <div className="border-t border-zinc-100 bg-white p-4 flex gap-3 shrink-0">
-              <button
-                onClick={resetAll}
-                className="
-                  flex-1 flex items-center justify-center gap-2 rounded-xl
-                  border border-zinc-200 py-3.5 text-sm font-medium text-zinc-600
-                  active:scale-[0.98] transition-transform
-                "
-              >
-                <RotateCcw size={14} strokeWidth={2.25} />
-                Reset
-              </button>
-              <button
-                onClick={() => setOpen(false)}
-                className="
-                  flex-1 rounded-xl bg-[#0F1115] py-3.5
-                  text-sm font-semibold text-white
-                  shadow-sm active:scale-[0.98] transition-transform
-                "
-              >
-                Apply
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ================= BOTTOM SHEET (portal, max z-index, escapes any ancestor stacking context) ================= */}
+      {mounted && open && createPortal(sheet, document.body)}
     </>
   );
 }
