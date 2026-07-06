@@ -48,8 +48,19 @@ export default function FilterControlsMobile({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+  if (open) {
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    return () => {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, scrollY);
+    };
+  }
+}, [open]);
 
   /* ---------------- URL DERIVED STATE ---------------- */
 
@@ -143,12 +154,12 @@ export default function FilterControlsMobile({
 
       {/* SHEET */}
       <div
-        className="
-          absolute inset-x-0 bottom-0 h-[90vh] bg-white
-          rounded-t-[28px] flex flex-col overflow-hidden
-          shadow-[0_-8px_40px_-4px_rgba(0,0,0,0.25)]
-        "
-      >
+  className="
+    absolute inset-x-0 bottom-0 h-[90vh] h-[90dvh] bg-white
+    rounded-t-[28px] flex flex-col overflow-hidden
+    shadow-[0_-8px_40px_-4px_rgba(0,0,0,0.25)]
+  "
+>
         {/* HANDLE */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">
           <span className="h-1 w-9 rounded-full bg-zinc-200" />
@@ -380,8 +391,8 @@ export default function FilterControlsMobile({
           onClick={() => setOpen(true)}
           className="
             relative w-full flex items-center justify-center gap-2
-            rounded-2xl bg-[#0F1115] py-3.5
-            text-sm font-semibold text-white tracking-wide
+            rounded-2xl bg-white py-3.5
+            text-sm font-semibold text-black tracking-wide
             shadow-[0_8px_24px_-8px_rgba(15,17,21,0.5)]
             active:scale-[0.98] transition-transform
           "
