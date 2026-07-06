@@ -27,7 +27,7 @@ export const metadata = {
 async function verifyAdmin() {
   try {
     const cookieStore = await cookies();
-
+console.log("NEXT COOKIES:", cookieStore.getAll());
     const cookieHeader = cookieStore
       .getAll()
       .map((c) => `${c.name}=${c.value}`)
