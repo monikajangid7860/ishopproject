@@ -131,7 +131,7 @@ export default function BestSellerSlider({ products, imgurl }) {
         {/* SLIDER */}
         <div
           ref={emblaRef}
-          className="overflow-hidden pl-4 pr-2 md:px-0 touch-pan-x"
+          className="overflow-hidden pl-4 pr-2 md:px-0 touch-auto"
         >
           <div className="flex gap-3 md:gap-5 lg:gap-6 pb-2">
             {products.map((item) => (
