@@ -15,6 +15,12 @@ exports.adminLogin = async (req, res) => {
     }
 
     const admin = await Admin.findOne({ email });
+    console.log("EMAIL RECEIVED:", email);
+console.log("ADMIN FOUND:", !!admin);
+
+if (admin) {
+  console.log("DB EMAIL:", admin.email);
+}
 
     if (!admin) {
       return res.status(401).json({
@@ -31,7 +37,7 @@ exports.adminLogin = async (req, res) => {
     }
 
     const isMatch = await bcrypt.compare(password, admin.password);
-
+console.log("PASSWORD MATCH:", isMatch);
     if (!isMatch) {
       return res.status(401).json({
         flag: 0,
@@ -65,11 +71,11 @@ exports.adminLogin = async (req, res) => {
     );
 
     /* ========= SEND COOKIE ========= */
-    res.cookie("adminToken", token, {
+res.cookie("adminToken", token, {
   httpOnly: true,
-  secure: false,        // dev only
-  sameSite: "lax",
-  path: "/",            // VERY IMPORTANT
+  secure: true,
+  sameSite: "none",
+  path: "/",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 });
 

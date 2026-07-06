@@ -33,12 +33,15 @@ async function verifyAdmin() {
       .map((c) => `${c.name}=${c.value}`)
       .join("; ");
 
-    const res = await fetch("http://localhost:5000/admin/auth/me", {
-      headers: {
-        Cookie: cookieHeader,
-      },
-      cache: "no-store",
-    });
+    const res = await fetch(
+  `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/auth/me`,
+  {
+    headers: {
+      Cookie: cookieHeader,
+    },
+    cache: "no-store",
+  }
+);
 
     return res.ok;
   } catch {

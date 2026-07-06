@@ -7,12 +7,16 @@ export default function AdminLogoutBtn() {
 
   async function handleLogout() {
     try {
-      await fetch("http://localhost:5000/admin/auth/logout", {
-        method: "POST",
-        credentials: "include", // 🔥 REQUIRED
-      });
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/admin/auth/logout`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
 
       router.replace("/admin/login");
+      router.refresh(); // Refresh server components after logout
     } catch (err) {
       console.error("Logout failed", err);
     }
@@ -22,9 +26,14 @@ export default function AdminLogoutBtn() {
     <button
       onClick={handleLogout}
       className="
-        px-3 py-1.5 text-sm font-medium
-        rounded-lg border border-gray-200
-        text-gray-700 hover:bg-gray-100
+        px-3 py-1.5
+        text-sm
+        font-medium
+        rounded-lg
+        border
+        border-gray-200
+        text-gray-700
+        hover:bg-gray-100
       "
     >
       Logout
