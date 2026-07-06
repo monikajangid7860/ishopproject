@@ -97,7 +97,8 @@ export default function BestSellerSlider({ products, imgurl }) {
   }, [embla, onSelect]);
 
   return (
-    <section className="pt-8 pb-5 md:pl-6">
+    <section className="pt-8 pb-5 md:pl-6
+    ">
       <h2 className="text-2xl lg:text-[25px] font-semibold text-gray-900 mb-4 px-4 md:px-6">
         BEST SELLER IN THIS CATEGORY
       </h2>
