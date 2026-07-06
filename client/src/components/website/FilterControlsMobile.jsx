@@ -19,7 +19,6 @@ import {
   RotateCcw,
   Check,
 } from "lucide-react";
-import FilterCheckbox from "./FilterCheckbox.jsx";
 import CategoryList from "./CategoryList.jsx";
 
 function makeSlug(value = "") {
@@ -71,7 +70,7 @@ export default function FilterControlsMobile({
     (sortBy !== 1 ? 1 : 0) +
     (limit !== 2 ? 1 : 0);
 
-  /* ---------------- URL HELPERS ---------------- */
+  /* ---------------- URL HELPERS (unchanged) ---------------- */
 
   function updateParam(key, values) {
     const params = new URLSearchParams(searchParams.toString());
@@ -127,19 +126,20 @@ export default function FilterControlsMobile({
   /* ---------------- BODY SCROLL LOCK ---------------- */
 
   useEffect(() => {
-  if (open) {
-    const scrollY = window.scrollY;
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
-    };
-  }
-}, [open]);
+    if (open) {
+      const scrollY = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      return () => {
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        window.scrollTo(0, scrollY);
+      };
+    }
+  }, [open]);
+
   /* ---------------- SHEET MARKUP ---------------- */
 
   const sheet = (
@@ -152,12 +152,12 @@ export default function FilterControlsMobile({
 
       {/* SHEET */}
       <div
-  className="
-    absolute inset-x-0 bottom-0 h-[90vh] h-[90dvh] bg-white
-    rounded-t-[28px] flex flex-col overflow-hidden
-    shadow-[0_-8px_40px_-4px_rgba(0,0,0,0.25)]
-  "
->
+        className="
+          absolute inset-x-0 bottom-0 h-[90vh] h-[90dvh] bg-white
+          rounded-t-[28px] flex flex-col overflow-hidden
+          shadow-[0_-8px_40px_-4px_rgba(0,0,0,0.25)]
+        "
+      >
         {/* HANDLE */}
         <div className="flex justify-center pt-3 pb-1 shrink-0">
           <span className="h-1 w-9 rounded-full bg-zinc-200" />
@@ -176,6 +176,7 @@ export default function FilterControlsMobile({
             )}
           </div>
           <button
+            type="button"
             onClick={() => setOpen(false)}
             className="
               flex h-8 w-8 items-center justify-center rounded-full
@@ -187,8 +188,10 @@ export default function FilterControlsMobile({
         </div>
 
         {/* CONTENT */}
-        <div className="flex-1 overflow-y-auto px-5 py-6 space-y-8">
-
+        <div
+          className="flex-1 overflow-y-auto overscroll-contain px-5 py-6 space-y-8"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
           {/* SORT BY */}
           <div>
             <h4 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-zinc-400 mb-3">
@@ -203,6 +206,7 @@ export default function FilterControlsMobile({
                 return (
                   <button
                     key={opt.value}
+                    type="button"
                     onClick={() => updateSingleParam("sortby", opt.value)}
                     className={`
                       flex items-center gap-2 rounded-xl border px-3 py-2.5
@@ -239,6 +243,7 @@ export default function FilterControlsMobile({
                 return (
                   <button
                     key={val}
+                    type="button"
                     onClick={() => updateSingleParam("limit", val)}
                     className={`
                       rounded-xl border py-2.5 text-xs font-semibold
@@ -278,12 +283,21 @@ export default function FilterControlsMobile({
               {brands.map((b) => {
                 const active = selectedBrands.includes(b.slug);
                 return (
-                  <label
+                  <div
                     key={b.slug}
+                    role="checkbox"
+                    aria-checked={active}
+                    tabIndex={0}
                     onClick={() => toggleBrand(b.slug)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleBrand(b.slug);
+                      }
+                    }}
                     className={`
                       flex items-center justify-between gap-3 rounded-xl px-3 py-2.5
-                      cursor-pointer transition-colors
+                      cursor-pointer select-none transition-colors
                       ${active ? "bg-zinc-50" : "hover:bg-zinc-50/60"}
                     `}
                   >
@@ -303,14 +317,7 @@ export default function FilterControlsMobile({
                         <Check size={12} strokeWidth={3} className="text-white" />
                       )}
                     </span>
-                    <span className="sr-only">
-                      <FilterCheckbox
-                        label={b.name}
-                        checked={active}
-                        onChange={() => toggleBrand(b.slug)}
-                      />
-                    </span>
-                  </label>
+                  </div>
                 );
               })}
             </div>
@@ -330,6 +337,7 @@ export default function FilterControlsMobile({
                 return (
                   <button
                     key={slug}
+                    type="button"
                     onClick={() => toggleColor(slug)}
                     className={`
                       flex items-center gap-1.5 rounded-full border pl-2.5 pr-3 py-1.5
@@ -356,6 +364,7 @@ export default function FilterControlsMobile({
         {/* FOOTER */}
         <div className="border-t border-zinc-100 bg-white p-4 flex gap-3 shrink-0">
           <button
+            type="button"
             onClick={resetAll}
             className="
               flex-1 flex items-center justify-center gap-2 rounded-xl
@@ -367,6 +376,7 @@ export default function FilterControlsMobile({
             Reset
           </button>
           <button
+            type="button"
             onClick={() => setOpen(false)}
             className="
               flex-1 rounded-xl bg-[#0F1115] py-3.5
@@ -386,6 +396,7 @@ export default function FilterControlsMobile({
       {/* ================= BOTTOM BAR ================= */}
       <div className="lg:hidden fixed bottom-0 inset-x-0 px-4 pb-4" style={{ zIndex: 2147483646 }}>
         <button
+          type="button"
           onClick={() => setOpen(true)}
           className="
             relative w-full flex items-center justify-center gap-2
