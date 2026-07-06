@@ -48,19 +48,8 @@ export default function FilterControlsMobile({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-  if (open) {
-    const scrollY = window.scrollY;
-    document.body.style.position = "fixed";
-    document.body.style.top = `-${scrollY}px`;
-    document.body.style.width = "100%";
-    return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      window.scrollTo(0, scrollY);
-    };
-  }
-}, [open]);
+    setMounted(true);
+  }, []);
 
   /* ---------------- URL DERIVED STATE ---------------- */
 
@@ -138,10 +127,19 @@ export default function FilterControlsMobile({
   /* ---------------- BODY SCROLL LOCK ---------------- */
 
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => (document.body.style.overflow = "");
-  }, [open]);
-
+  if (open) {
+    const scrollY = window.scrollY;
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+    return () => {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.width = "";
+      window.scrollTo(0, scrollY);
+    };
+  }
+}, [open]);
   /* ---------------- SHEET MARKUP ---------------- */
 
   const sheet = (
