@@ -1,5 +1,8 @@
 "use client";
+import { Package, Settings, LogOut } from "lucide-react"; // add to your lucide-react import
+import { usePathname } from "next/navigation"; // if not already imported
 
+const pathname = usePathname();
 import { useEffect, useRef, useState } from "react";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -290,7 +293,6 @@ dispatch(loadCart(normalizedCart));
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Store", href: "/store" },
-    { name: "Products", href: "/products" },
     { name: "Contact", href: "/contact" },
     { name: "About Us", href: "/about" },
   ];
@@ -597,14 +599,25 @@ useEffect(() => {
 
 
 
+{/* ================= BACKDROP ================= */}
 {mobileOpen && (
   <div
+    className="fixed inset-0 z-40 bg-black/30 lg:hidden"
+    onClick={() => setMobileOpen(false)}
+    aria-hidden="true"
+  />
+)}
+
+{mobileOpen && (
+  <div
+    role="dialog"
+    aria-modal="true"
+    aria-label="Mobile menu"
     className="
-      lg:hidden
-      bg-white
-      border-t
+      lg:hidden relative z-50
+      bg-white border-t shadow-lg
       animate-slideDown
-      shadow-lg
+      max-h-[calc(100vh-4rem)] overflow-y-auto
     "
   >
     <div className="px-5 py-6">
@@ -616,14 +629,14 @@ useEffect(() => {
         className="
           flex items-center justify-between
           pb-5 border-b
-          hover:bg-gray-50
+          hover:bg-gray-50 active:bg-gray-100
           rounded-lg
-          -mx-2 px-2
+          -mx-2 px-2 py-1
           transition
         "
       >
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-full bg-[#01A49E]/10 flex items-center justify-center">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="h-12 w-12 shrink-0 rounded-full bg-[#01A49E]/10 ring-1 ring-[#01A49E]/20 flex items-center justify-center">
             <UserIcon className="text-[#01A49E]" size={22} />
           </div>
 
@@ -631,44 +644,45 @@ useEffect(() => {
             <h3 className="font-semibold text-gray-900 truncate">
               {user?._id ? user.name : "Welcome Guest"}
             </h3>
-
-            <p className="text-sm text-gray-500">
-              {user?._id
-                ? "Manage your account"
-                : "Login to continue shopping"}
+            <p className="text-sm text-gray-500 truncate">
+              {user?._id ? "Manage your account" : "Login to continue shopping"}
             </p>
           </div>
         </div>
 
-        <ChevronRight
-          size={20}
-          className="text-gray-400 flex-shrink-0"
-        />
+        <ChevronRight size={20} className="text-gray-400 shrink-0" />
       </Link>
 
       {/* ================= NAVIGATION ================= */}
-      <div className="mt-5 space-y-1">
-        {navItems.map((item) => (
-          <Link
-            key={item.name}
-            href={item.href}
-            onClick={() => setMobileOpen(false)}
-            className="
-              flex items-center
-              py-3
-              px-3
-              rounded-lg
-              text-[15px]
-              font-medium
-              text-gray-700
-              hover:bg-gray-100
-              transition
-            "
-          >
-            {item.name}
-          </Link>
-        ))}
-      </div>
+      <nav className="mt-5 space-y-1" aria-label="Mobile primary">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              onClick={() => setMobileOpen(false)}
+              aria-current={isActive ? "page" : undefined}
+              className={`
+                flex items-center justify-between
+                py-3 px-3 rounded-lg
+                text-[15px] font-medium
+                transition
+                ${
+                  isActive
+                    ? "bg-[#01A49E]/10 text-[#01A49E]"
+                    : "text-gray-700 hover:bg-gray-100 active:bg-gray-200"
+                }
+              `}
+            >
+              {item.name}
+              {isActive && (
+                <span className="h-1.5 w-1.5 rounded-full bg-[#01A49E]" />
+              )}
+            </Link>
+          );
+        })}
+      </nav>
 
       {/* ================= QUICK ACTIONS ================= */}
       <div className="mt-6">
@@ -677,96 +691,81 @@ useEffect(() => {
         </h4>
 
         <div className="grid grid-cols-2 gap-3">
-
           <Link
             href="/wishlist"
             onClick={() => setMobileOpen(false)}
             className="
-              relative
-              flex flex-col items-center justify-center
-              gap-2
-              rounded-xl
-              border border-gray-200
+              relative flex flex-col items-center justify-center gap-2
+              rounded-xl border border-gray-200
               py-4
-              hover:bg-gray-50
+              hover:bg-gray-50 active:scale-[0.97]
               transition
             "
           >
-            <Heart size={20} />
-
+            <Heart size={20} className="text-gray-700" />
             {mounted && wishCount > 0 && (
-              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center">
                 {wishCount}
               </span>
             )}
-
-            <span className="text-sm font-medium">
-              Wishlist
-            </span>
+            <span className="text-sm font-medium text-gray-700">Wishlist</span>
           </Link>
 
           <Link
             href="/cart"
             onClick={() => setMobileOpen(false)}
             className="
-              relative
-              flex flex-col items-center justify-center
-              gap-2
-              rounded-xl
-              bg-[#01A49E]
-              text-white
+              relative flex flex-col items-center justify-center gap-2
+              rounded-xl bg-[#01A49E] text-white
               py-4
-              hover:opacity-95
+              hover:opacity-95 active:scale-[0.97]
               transition
             "
           >
             <ShoppingCart size={20} />
-
             {mounted && cartCount > 0 && (
-              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center">
                 {cartCount}
               </span>
             )}
-
-            <span className="text-sm font-medium">
-              Cart
-            </span>
+            <span className="text-sm font-medium">Cart</span>
           </Link>
-
         </div>
       </div>
 
       {/* ================= ACCOUNT ================= */}
       <div className="mt-6 border-t pt-5">
-
         <h4 className="text-xs uppercase tracking-wider text-gray-400 mb-3">
           Account
         </h4>
 
         {user?._id ? (
-          <>
+          <div className="space-y-1">
             <Link
               href="/profile"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700 transition"
+              className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition"
             >
-              👤 Profile
+              <UserIcon size={18} className="text-gray-500" />
+              Profile
             </Link>
 
             <Link
               href="/my-orders"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700 transition"
+              className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition"
             >
-              📦 My Orders
+              <Package size={18} className="text-gray-500" />
+              My Orders
             </Link>
 
             <Link
               href="/settings"
               onClick={() => setMobileOpen(false)}
-              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700 transition"
+              className="flex items-center gap-3 px-3 py-3 rounded-lg hover:bg-gray-100 active:bg-gray-200 text-gray-700 transition"
             >
-              ⚙️ Settings
+              <Settings size={18} className="text-gray-500" />
+              Settings
             </Link>
 
             <button
@@ -775,37 +774,23 @@ useEffect(() => {
                 setMobileOpen(false);
               }}
               className="
-                mt-4
-                w-full
-                rounded-xl
-                bg-red-50
-                py-3
-                font-semibold
-                text-red-600
-                hover:bg-red-100
+                mt-3 w-full flex items-center justify-center gap-2
+                rounded-xl bg-red-50 py-3
+                font-semibold text-red-600
+                hover:bg-red-100 active:scale-[0.98]
                 transition
               "
             >
+              <LogOut size={16} />
               Logout
             </button>
-          </>
+          </div>
         ) : (
           <>
             <Link
               href="/login"
               onClick={() => setMobileOpen(false)}
-              className="
-                block
-                w-full
-                rounded-xl
-                bg-[#01A49E]
-                py-3
-                text-center
-                font-semibold
-                text-white
-                hover:opacity-90
-                transition
-              "
+              className="block w-full rounded-xl bg-[#01A49E] py-3 text-center font-semibold text-white hover:opacity-90 active:scale-[0.98] transition"
             >
               Login
             </Link>
@@ -813,31 +798,17 @@ useEffect(() => {
             <Link
               href="/signup"
               onClick={() => setMobileOpen(false)}
-              className="
-                block
-                mt-3
-                w-full
-                rounded-xl
-                border
-                border-[#01A49E]
-                py-3
-                text-center
-                font-semibold
-                text-[#01A49E]
-                hover:bg-[#01A49E]/5
-                transition
-              "
+              className="block mt-3 w-full rounded-xl border border-[#01A49E] py-3 text-center font-semibold text-[#01A49E] hover:bg-[#01A49E]/5 active:scale-[0.98] transition"
             >
               Create Account
             </Link>
           </>
         )}
-
       </div>
-
     </div>
   </div>
 )}
+
 
     </header>
   );
