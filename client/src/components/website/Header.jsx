@@ -714,7 +714,7 @@ useEffect(() => {
               rounded-xl
               bg-[#01A49E]
               text-white
-              py-4
+              py-2
               hover:opacity-95
               transition
             "
@@ -738,36 +738,9 @@ useEffect(() => {
       {/* ================= ACCOUNT ================= */}
       <div className="mt-6 border-t pt-5">
 
-        <h4 className="text-xs uppercase tracking-wider text-gray-400 mb-3">
-          Account
-        </h4>
 
         {user?._id ? (
           <>
-            <Link
-              href="/profile"
-              onClick={() => setMobileOpen(false)}
-              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700 transition"
-            >
-              👤 Profile
-            </Link>
-
-            <Link
-              href="/my-orders"
-              onClick={() => setMobileOpen(false)}
-              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700 transition"
-            >
-              📦 My Orders
-            </Link>
-
-            <Link
-              href="/settings"
-              onClick={() => setMobileOpen(false)}
-              className="block px-3 py-3 rounded-lg hover:bg-gray-100 text-gray-700 transition"
-            >
-              ⚙️ Settings
-            </Link>
-
             <button
               onClick={() => {
                 handleLogout(dispatch);
