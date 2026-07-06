@@ -762,47 +762,52 @@ useEffect(() => {
             </button>
           </>
         ) : (
-          <>
-            <Link
-              href="/login"
-              onClick={() => setMobileOpen(false)}
-              className="
-                block
-                w-full
-                rounded-xl
-                bg-[#01A49E]
-                py-3
-                text-center
-                font-semibold
-                text-white
-                hover:opacity-90
-                transition
-              "
-            >
-              Login
-            </Link>
+          <div className="grid grid-cols-2 gap-3">
 
-            <Link
-              href="/signup"
-              onClick={() => setMobileOpen(false)}
-              className="
-                block
-                mt-3
-                w-full
-                rounded-xl
-                border
-                border-[#01A49E]
-                py-3
-                text-center
-                font-semibold
-                text-[#01A49E]
-                hover:bg-[#01A49E]/5
-                transition
-              "
-            >
-              Create Account
-            </Link>
-          </>
+          <Link
+            href="/login"
+            onClick={() => setMobileOpen(false)}
+            className="
+              relative
+              flex flex-col items-center justify-center
+              gap-2
+              rounded-xl
+              border border-gray-200
+              py-4
+              hover:bg-gray-50
+              transition
+            "
+          >
+            
+            <span className="text-sm font-medium">
+              login
+            </span>
+          </Link>
+
+          <Link
+            href="/signup"
+            onClick={() => setMobileOpen(false)}
+            className="
+              relative
+              flex flex-col items-center justify-center
+              gap-2
+              rounded-xl
+              bg-[#01A49E]
+              text-white
+              py-2
+              hover:opacity-95
+              transition
+            "
+          >
+            
+
+
+            <span className="text-sm font-medium">
+              signup
+            </span>
+          </Link>
+
+        </div>
         )}
 
       </div>
