@@ -19,11 +19,19 @@ const ProductSchema = new mongoose.Schema(
             type:String,
             required:true
         },
-        thumbnail: {
-            type: String, // store filename or full URL
+      thumbnail: {
+    type: {
+        url: {
+            type: String,
             required: true,
-            // NOTE: Validate size during upload, not in schema
         },
+        public_id: {
+            type: String,
+            required: true,
+        },
+    },
+    required: true,
+},
 
         original_price: {
             type: Number,
@@ -71,10 +79,15 @@ const ProductSchema = new mongoose.Schema(
         },
         // ['qw4qweq','q2q231231','123123123','3241243124']
         other_images: [
-            {
-                type: String // multiple filenames/URLs
-            }
-        ],
+    {
+        url: {
+            type: String,
+        },
+        public_id: {
+            type: String,
+        },
+    },
+],
         category_id: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Category",

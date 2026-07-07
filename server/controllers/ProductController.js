@@ -5,6 +5,7 @@ const fs = require("fs");
 const { CategoryModel } = require("../models/CategoryModel");
 const { ColorModel } = require("../models/ColorModel");
 const { BrandModel } = require("../models/BrandModel");
+const uploadToCloudinary = require("../helper/cloudinaryUpload");
 
 /* ========================= GET PRODUCTS ========================= */
 const getData = async (req, res) => {
@@ -124,41 +125,98 @@ const getProductById = async (req, res) => {
 };
 
 /* ========================= CREATE PRODUCT ========================= */
+// const createData = async (req, res) => {
+//   try {
+//     const file = req.files?.thumbnail;
+//     if (!file) return res.send(messages.image_upload_failed);
+
+//     const productExist = await ProductModel.findOne({ name: req.body.name });
+//     if (productExist) {
+//       return res.send({ message: "Resource already created", flag: 0 });
+//     }
+
+//     const imageName = uniqueImageName(file.name);
+//     const destination = "./public/images/product/main_images/" + imageName;
+
+//     await file.mv(destination);
+
+//     await ProductModel.create({
+//       name: req.body.name,
+//       slug: req.body.slug,
+//       thumbnail: imageName,
+//       original_price: req.body.original_price,
+//       final_price: req.body.final_price,
+//       discount_percentage: req.body.discount_percentage,
+//       category_id: req.body.category_id,
+//       brand_id: req.body.brand_id,
+//       color_ids: req.body.color_ids ? JSON.parse(req.body.color_ids) : [],
+//       description: req.body.description,
+//     });
+
+//     res.send(messages.created);
+//   } catch (error) {
+//     console.log(error);
+//     res.send(messages.catch_error);
+//   }
+// };
 const createData = async (req, res) => {
   try {
     const file = req.files?.thumbnail;
-    if (!file) return res.send(messages.image_upload_failed);
 
-    const productExist = await ProductModel.findOne({ name: req.body.name });
-    if (productExist) {
-      return res.send({ message: "Resource already created", flag: 0 });
+    if (!file) {
+      return res.send(messages.image_upload_failed);
     }
 
-    const imageName = uniqueImageName(file.name);
-    const destination = "./public/images/product/main_images/" + imageName;
+    const productExist = await ProductModel.findOne({
+      name: req.body.name,
+    });
 
-    await file.mv(destination);
+    if (productExist) {
+      return res.send({
+        message: "Resource already created",
+        flag: 0,
+      });
+    }
+
+    /* ---------------- UPLOAD TO CLOUDINARY ---------------- */
+
+    const uploadResult = await uploadToCloudinary(
+      file,
+      "ishop/products/main"
+    );
+
+    /* ---------------- SAVE PRODUCT ---------------- */
 
     await ProductModel.create({
       name: req.body.name,
       slug: req.body.slug,
-      thumbnail: imageName,
+
+      // Store Cloudinary URL instead of filename
+     thumbnail: {
+    url: uploadResult.secure_url,
+    public_id: uploadResult.public_id,
+},
+
       original_price: req.body.original_price,
       final_price: req.body.final_price,
       discount_percentage: req.body.discount_percentage,
+
       category_id: req.body.category_id,
       brand_id: req.body.brand_id,
-      color_ids: req.body.color_ids ? JSON.parse(req.body.color_ids) : [],
+
+      color_ids: req.body.color_ids
+        ? JSON.parse(req.body.color_ids)
+        : [],
+
       description: req.body.description,
     });
 
-    res.send(messages.created);
+    return res.send(messages.created);
   } catch (error) {
     console.log(error);
-    res.send(messages.catch_error);
+    return res.send(messages.catch_error);
   }
 };
-
 /* ========================= STATUS TOGGLE ========================= */
 const status = async (req, res) => {
   try {
