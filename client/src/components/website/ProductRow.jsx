@@ -34,9 +34,7 @@ export default function ProductRow({ item }) {
 
   dispatch(deleteItem({ id: item.id }));
 };
-const imageSrc = item.image?.startsWith("http")
-  ? item.image
-  : `${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/main_images/${item.image}`;
+const imageSrc = item.image || "/placeholder.png";
   return (
     <div
       className="

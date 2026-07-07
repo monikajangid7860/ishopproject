@@ -8,6 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addTocart } from "@/redux/reducer/CartReducer";
 import { addTowish, removeFromwish } from "@/redux/reducer/WishReducer";
 import { createPortal } from "react-dom";
+import { getThumbnail, getOtherImages } from "@/helper/productImage";
 
 export default function ProductCard2({ product, imgurl }) {
   const dispatch = useDispatch();
@@ -19,16 +20,10 @@ export default function ProductCard2({ product, imgurl }) {
   const [flyFrom, setFlyFrom] = useState(null);
 
   /* ---------------- IMAGES ---------------- */
-  const BASE_IMAGE_URL = `${imgurl}main_images/`;
-
   const images = [
-    product?.thumbnail ? BASE_IMAGE_URL + product.thumbnail : null,
-    ...(Array.isArray(product?.other_images)
-      ? product.other_images
-          .filter((img) => img?.trim())
-          .map((img) => BASE_IMAGE_URL + img)
-      : []),
-  ].filter(Boolean);
+  getThumbnail(product, imgurl),
+  ...getOtherImages(product, imgurl),
+].filter(Boolean);
 
   const mainImage = images[index] || images[0] || "/placeholder.png";
 

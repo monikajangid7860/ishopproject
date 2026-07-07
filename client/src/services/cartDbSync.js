@@ -6,9 +6,10 @@ export async function syncCartToDB({ user, cart, dispatch }) {
   console.log(user);
 
   const res = await axiosApiInstance.post("/cart/sync-cart", {
-    user_id: user._id,
-    cart_data: cart,
-  });
+  user_id: user._id,
+  cart_data: cart,
+  source: "guest",
+});
 
   const mergedItems =
     res.data?.cart?.items?.map((row) => ({

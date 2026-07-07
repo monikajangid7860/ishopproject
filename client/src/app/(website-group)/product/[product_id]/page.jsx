@@ -1,3 +1,4 @@
+import { getThumbnail, getOtherImages } from "@/helper/getProductImage";
 import { getProductById } from "@/api-calls/products";
 import ProductPageClient from "@/components/website/ProductPageClient";
 
@@ -18,33 +19,26 @@ export default async function Page({ params }) {
   const { product, imageUrl } = res;
     console.log(product)
   // 🔥 NORMALIZED PRODUCT OBJECT (THIS IS KEY)
-  const normalizedProduct = {
-    id: product._id,
-    title: product.name,
-    slug: product.slug,
-    brand: product.brand_id?.name,
-    price: product.final_price,
-    original_price: product.original_price,
-    discount_percentage: product.discount_percentage,
-    sku: product._id,
-    stock: product.stock,
-    description: product.description,
 
-    // 👇 build images array correctly
-    images: [
-      `${imageUrl}main_images/${product.thumbnail}`,
-      ...(product.other_images || []).map(
-        (img) => `${imageUrl}other_images/${img}`
-      ),
-    ],
-    other_images: [
-      ...(product.other_images || []).map(
-        (img) => `${imageUrl}other_images/${img}`
-      ),
-    ]
-  };
+const normalizedProduct = {
+  id: product._id,
+  title: product.name,
+  slug: product.slug,
+  brand: product.brand_id?.name,
+  price: product.final_price,
+  original_price: product.original_price,
+  discount_percentage: product.discount_percentage,
+  sku: product._id,
+  stock: product.stock,
+  description: product.description,
 
+  images: [
+    getThumbnail(product, imageUrl),
+    ...getOtherImages(product, imageUrl),
+  ],
 
+  other_images: getOtherImages(product, imageUrl),
+};
 return (
   <ProductPageClient
     product={normalizedProduct}

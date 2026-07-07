@@ -174,55 +174,79 @@ dispatch(loadWish(normalizedItems));
 
 
   /* ---------------- FETCH CART ---------------- */
-  useEffect(() => {
-    if (!user) return;
+//   useEffect(() => {
+//     if (!user) return;
 
-    async function fetchCart() {
-      try {
-        const res = await axiosApiInstance.get(`/cart/${user._id}`);
+//     async function fetchCart() {
+//       try {
+//         const res = await axiosApiInstance.get(`/cart/${user._id}`);
 
-const normalizedCart =
-  res.data?.cart?.items?.map((row) => ({
-    id: row.product_id._id,
-    title: row.product_id.name,
-    image: row.product_id.thumbnail,
-    price: Number(row.product_id.final_price),
-    quantity: row.quantity,
-  })) || [];
+// const normalizedCart =
+//   res.data?.cart?.items?.map((row) => ({
+//     id: row.product_id._id,
+//     title: row.product_id.name,
+//     image: row.product_id.thumbnail,
+//     price: Number(row.product_id.final_price),
+//     quantity: row.quantity,
+//   })) || [];
 
-dispatch(loadCart(normalizedCart));
-      } catch (error) {
-        console.error("Fetch cart failed", error);
-      }
-    }
+// dispatch(loadCart(normalizedCart));
+//       } catch (error) {
+//         console.error("Fetch cart failed", error);
+//       }
+//     }
 
-    fetchCart();
-  }, [user, dispatch]);
+//     fetchCart();
+//   }, [user, dispatch]);
 
   /* ---------------- CART SYNC ---------------- */
   const cartSyncedRef = useRef(false);
 
   useEffect(() => {
-    if (!user) return;
-    if (cartSyncedRef.current) return;
-    if (!cart.length) return;
+  if (!user?._id) return;
+  if (cartSyncedRef.current) return;
 
-    cartSyncedRef.current = true;
+  cartSyncedRef.current = true;
 
-    async function syncGuestCart() {
-      try {
+  async function initializeCart() {
+    try {
+      // Read guest cart directly from localStorage
+      const guestCart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+      // Merge only if guest cart exists
+      if (guestCart.length > 0) {
         await axiosApiInstance.post("/cart/sync-cart", {
           user_id: user._id,
-          cart_data: cart,
+          cart_data: guestCart,
           source: "guest",
         });
-      } catch (err) {
-        console.error("Cart sync failed", err);
       }
-    }
 
-    syncGuestCart();
-  }, [user]);
+      // Always fetch the latest merged cart
+      const res = await axiosApiInstance.get(`/cart/${user._id}`);
+
+      const normalizedCart =
+        res.data?.cart?.items?.map((row) => ({
+          id: row.product_id._id,
+          title: row.product_id.name,
+          image: row.product_id.thumbnail,
+          price: Number(row.product_id.final_price),
+          final_price: Number(row.product_id.final_price),
+          original_price: Number(row.product_id.original_price),
+          quantity: row.quantity,
+        })) || [];
+
+      dispatch(loadCart(normalizedCart));
+
+      // Guest cart no longer needed
+      localStorage.removeItem("cart");
+    } catch (err) {
+      console.error("Cart initialization failed", err);
+    }
+  }
+
+  initializeCart();
+}, [user, dispatch]);
 
   /* ---------------- WISHLIST SYNC ---------------- */
   useEffect(() => {

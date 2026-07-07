@@ -13,10 +13,7 @@ export default function WishlistRow({ item }) {
   const cartItems = useSelector((state) => state.cart.items);
 
   // Defensive image normalization (UNCHANGED)
-  const imageSrc = item.image?.startsWith("http")
-    ? item.image
-    : `${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/main_images/${item.image}`;
-
+const imageSrc =item.image || "/placeholder.png";
   /* ===============================
      🔥 LOGIC FIX ONLY (NO UI)
      =============================== */

@@ -1,8 +1,7 @@
 "use client";
-
-import Image from "next/image";
 import Link from "next/link";
 import useRecentlyViewedProducts from "@/hooks/useRecentlyViewedProducts";
+import { getThumbnail } from "@/helper/productImage";
 
 export default function RecentlyViewed() {
   const { products, loading } = useRecentlyViewedProducts();
@@ -37,8 +36,12 @@ export default function RecentlyViewed() {
             <div className="bg-slate-50 rounded-lg p-3 flex flex-col lg:flex-row items-start md:gap-3 h-60 lg:h-auto shadow-sm border border-slate-100">
 
               {/* Image */}
-              <div className="shrink-0 relative w-[86px] h-[86px] rounded-md overflow-hidden bg-white"><img
-  src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/main_images/${product.thumbnail}`}
+              <div className="shrink-0 relative w-[86px] h-[86px] rounded-md overflow-hidden bg-white">
+<img
+  src={getThumbnail(
+    product,
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/`
+  )}
   alt={product.name}
   className="w-full h-full object-contain"
 />
