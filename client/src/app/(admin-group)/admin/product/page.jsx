@@ -5,7 +5,7 @@ import { getProducts } from "@/api-calls/products";
 import StatusToggleBtn from "@/components/admin/StatusToggleBtn";
 import DeleteBtn from "@/components/admin/DeleteBtn";
 import MultiImageSelector from "@/components/admin/MultiImageSelector";
-import { getThumbnail } from "@/helper/productImage";
+import { getThumbnail } from "@/helper/getProductImage";
 export default async function ProductTable() {
   const productJSON = await getProducts();
   const products = productJSON.products;

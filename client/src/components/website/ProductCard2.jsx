@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { addTocart } from "@/redux/reducer/CartReducer";
 import { addTowish, removeFromwish } from "@/redux/reducer/WishReducer";
 import { createPortal } from "react-dom";
-import { getThumbnail, getOtherImages } from "@/helper/productImage";
+import { getThumbnail, getOtherImages } from "@/helper/getProductImage";
 
 export default function ProductCard2({ product, imgurl }) {
   const dispatch = useDispatch();
