@@ -97,13 +97,37 @@ const syncCart = async (req, res) => {
     res.send(messages.catch_error);
   }
 };
+// const updateCart = async (req, res) => {
+//   try {
+//     const { user_id, items } = req.body;
+
+//     if (!user_id) {
+//       return res.send({ flag: 0, msg: "user_id required" });
+//     }
+
+//     await CartModel.findOneAndUpdate(
+//       { user_id },
+//       { items },
+//       { upsert: true }
+//     );
+
+//     res.send({
+//       flag: 1,
+//       msg: "Cart updated",
+//     });
+//   } catch (err) {
+//     console.error("Update cart error", err);
+//     res.send(messages.catch_error);
+//   }
+// };
+
 const updateCart = async (req, res) => {
   try {
     const { user_id, items } = req.body;
 
-    if (!user_id) {
-      return res.send({ flag: 0, msg: "user_id required" });
-    }
+    console.log("========== UPDATE CART ==========");
+    console.log("USER:", user_id);
+    console.log("ITEMS:", JSON.stringify(items, null, 2));
 
     await CartModel.findOneAndUpdate(
       { user_id },
@@ -116,12 +140,9 @@ const updateCart = async (req, res) => {
       msg: "Cart updated",
     });
   } catch (err) {
-    console.error("Update cart error", err);
-    res.send(messages.catch_error);
+    console.error(err);
   }
 };
-
-
 /* ---------------------------------------
    GET CART (REFRESH / PAGE LOAD)
 ---------------------------------------- */
