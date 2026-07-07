@@ -118,10 +118,16 @@ const getProductById = async (req, res) => {
       product,
       imageUrl: `${process.env.SERVER_URL}/images/product/`,
     });
-  } catch (error) {
-    console.log(error);
-    res.send(messages.catch_error);
-  }
+  }catch (error) {
+  console.error("CREATE PRODUCT ERROR:");
+  console.error(error);
+
+  return res.status(500).json({
+    flag: 0,
+    message: error.message,
+    stack: error.stack,
+  });
+}
 };
 
 /* ========================= CREATE PRODUCT ========================= */
