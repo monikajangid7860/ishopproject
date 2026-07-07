@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import useRecentlyViewedProducts from "@/hooks/useRecentlyViewedProducts";
-import { getThumbnail } from "@/helper/productImage";
+import { getThumbnail } from "@/helper/getProductImage";
 
 export default function RecentlyViewed() {
   const { products, loading } = useRecentlyViewedProducts();
