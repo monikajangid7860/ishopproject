@@ -344,8 +344,12 @@ const deleteData = async (req, res) => {
 const updateData = async (req, res) => {
   try {
     const product = await ProductModel.findById(req.params.id);
+
     if (!product) {
-      return res.send({ message: "Product not found", flag: 0 });
+      return res.send({
+        message: "Product not found",
+        flag: 0,
+      });
     }
 
     const update = {};
@@ -357,12 +361,14 @@ const updateData = async (req, res) => {
     if (req.body.original_price)
       update.original_price = req.body.original_price;
 
-    if (req.body.final_price) update.final_price = req.body.final_price;
+    if (req.body.final_price)
+      update.final_price = req.body.final_price;
 
     if (req.body.discount_percentage)
       update.discount_percentage = req.body.discount_percentage;
 
-    if (req.body.description) update.description = req.body.description;
+    if (req.body.description)
+      update.description = req.body.description;
 
     // -------- RELATIONS --------
     if (req.body.category_id && req.body.category_id !== "undefined") {
@@ -379,19 +385,21 @@ const updateData = async (req, res) => {
 
     // -------- IMAGE UPDATE --------
     if (req.files?.thumbnail) {
-      const file = req.files.thumbnail;
-      const imageName = uniqueImageName(file.name);
+      // Delete old Cloudinary image
+      if (product.thumbnail?.public_id) {
+        await cloudinary.uploader.destroy(product.thumbnail.public_id);
+      }
 
-      await file.mv("./public/images/product/main_images/" + imageName);
+      // Upload new image
+      const result = await uploadToCloudinary(
+        req.files.thumbnail,
+        "ishop/products/main"
+      );
 
-      update.thumbnail = imageName;
-
-      // delete old image
-      try {
-        fs.unlinkSync(
-          "./public/images/product/main_images/" + product.thumbnail
-        );
-      } catch {}
+      update.thumbnail = {
+        url: result.secure_url,
+        public_id: result.public_id,
+      };
     }
 
     await ProductModel.findByIdAndUpdate(req.params.id, update);
@@ -400,6 +408,7 @@ const updateData = async (req, res) => {
       message: "Product updated successfully",
       flag: 1,
     });
+
   } catch (error) {
     console.log(error);
     res.send(messages.catch_error);
