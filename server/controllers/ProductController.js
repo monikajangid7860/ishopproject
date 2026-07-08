@@ -5,6 +5,7 @@ const fs = require("fs");
 const { CategoryModel } = require("../models/CategoryModel");
 const { ColorModel } = require("../models/ColorModel");
 const { BrandModel } = require("../models/BrandModel");
+const cloudinary = require("../config/cloudinary");
 const uploadToCloudinary = require("../helper/cloudinaryUpload");
 
 /* ========================= GET PRODUCTS ========================= */
