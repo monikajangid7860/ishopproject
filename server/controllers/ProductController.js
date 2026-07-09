@@ -254,35 +254,55 @@ const uploadOtherImages = async (req, res) => {
     const { product_id } = req.body;
     const files = req.files?.other_images;
 
-    if (!files) return res.send({ msg: "No images provided", flag: 0 });
+    if (!files) {
+      return res.send({
+        msg: "No images provided",
+        flag: 0,
+      });
+    }
 
     const product = await ProductModel.findById(product_id);
-    if (!product) return res.send({ msg: "Product not found", flag: 0 });
 
-    const other_images = product.other_images || [];
+    if (!product) {
+      return res.send({
+        msg: "Product not found",
+        flag: 0,
+      });
+    }
 
     const images = Array.isArray(files) ? files : [files];
 
-    for (const img of images) {
-      const name = uniqueImageName(img.name);
-      await img.mv("./public/images/product/other_images/" + name);
-      other_images.push(name);
+    const other_images = product.other_images || [];
+
+    for (const file of images) {
+      const result = await uploadToCloudinary(
+        file,
+        "ishop/products/other"
+      );
+
+      other_images.push({
+        url: result.secure_url,
+        public_id: result.public_id,
+      });
     }
 
     product.other_images = other_images;
     await product.save();
 
     res.send({
-      msg: "Images uploaded",
+      msg: "Images uploaded successfully",
       flag: 1,
-      updated_other_images: other_images,
+      updated_other_images: product.other_images,
     });
   } catch (error) {
     console.log(error);
-    res.send({ msg: "Error uploading images", flag: 0 });
+
+    res.send({
+      msg: "Error uploading images",
+      flag: 0,
+    });
   }
 };
-
 /* ========================= DELETE SINGLE IMAGE ========================= */
 const deleteImage = async (req, res) => {
   try {

@@ -3,14 +3,16 @@ import React, { useState } from "react";
 import { Images, X, Trash, ZoomIn } from "lucide-react";
 import FileUpload from "@/components/common/FileUpload";
 import { axiosApiInstance, notify } from "@/helper/helper";
-
+import { getOtherImages } from "@/helper/getProductImage";
 function MultiImageSelector({ product_id, api_url, other_images }) {
   const [otherImages, setotherImages] = useState(other_images);
   const [toggle, setToggle] = useState(false);
   const [zoomImg, setZoomImg] = useState(null);
   const [image_files, setimage_files] = useState([]);
   const [isUploading, setIsUploading] = useState(false);
-
+const imageUrls = getOtherImages({
+  other_images: otherImages,
+});
   // =====================================
   // 📤 UPLOAD
   // =====================================
@@ -99,18 +101,16 @@ function MultiImageSelector({ product_id, api_url, other_images }) {
             {/* Thumbnails */}
             {otherImages.length > 0 ? (
               <div className="grid grid-cols-3 gap-4 max-h-[260px] overflow-y-auto pr-2 mb-6">
-                {otherImages.map((img, index) => (
+                {imageUrls.map((img, index) => (
                   <div
                     key={index}
                     className="relative border rounded-lg group cursor-pointer"
-                    onClick={() =>
-                      setZoomImg(
-                        `${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/other_images/${img}`
-                      )
+                    
+                      onClick={() => setZoomImg(img)
                     }
                   >
                     <img
-                      src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/other_images/${img}`}
+                      src={img}
                       className="w-full h-[120px] object-cover rounded-lg group-hover:opacity-80"
                     />
 
