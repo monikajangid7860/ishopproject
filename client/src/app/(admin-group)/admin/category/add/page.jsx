@@ -14,7 +14,13 @@ const AddCategoryForm=()=>{
   const submitHandler=(event)=>{
     event.preventDefault();
     const formData=new FormData();
-    formData.append("image",event.target.image.files[0]);
+const file = event.target.image.files[0];
+
+if (!file) {
+  return notify("Please select an image", 0);
+}
+
+formData.append("image", file);
     formData.append("name",categoryRef.current.value);
     formData.append("slug",slugRef.current.value);
 

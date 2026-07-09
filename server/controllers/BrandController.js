@@ -1,7 +1,7 @@
-const { uniqueImageName } = require("../helper/helper");
 const messages = require("../message");
 const { BrandModel } = require("../models/BrandModel");
-const fs = require("fs");
+const uploadToCloudinary = require("../helper/cloudinaryUpload");
+const cloudinary = require("../config/cloudinary");
 
 
 const getData = async (req, res) => {
@@ -35,43 +35,47 @@ const getDataById = async (req, res) => {
 }
 
 const createData = async (req, res) => {
-    try {
-        const file = req.files.image;
-        const brandExist = await BrandModel.findOne({ name: req.body.name });
+  try {
+    const file = req.files?.image;
 
-        if (brandExist) {
-            return res.send({
-                messages: "Resourse-already created",
-                flag: 0
-            })
-        }
-        const image = uniqueImageName(file.name);
-        const destination = "./public/images/brand/" + image;
-
-        file.mv(
-            destination,
-            async (error) => {
-                if (error) {
-                    return res.send(messages.image_upload_failed);
-                } else {
-                    await BrandModel.create({
-                        name: req.body.name,
-                        slug: req.body.slug,
-                        image_name: image
-                    })
-                    return res.send(messages.created)
-                }
-
-            }
-        )
-
-
-    } catch (error) {
-        console.log(error)
-        res.send(messages.catch_error);
+    if (!file) {
+      return res.send({
+        msg: "Please select an image",
+        flag: 0,
+      });
     }
 
-}
+    const brandExist = await BrandModel.findOne({
+      name: req.body.name,
+    });
+
+    if (brandExist) {
+      return res.send({
+        msg: "Resource already exists",
+        flag: 0,
+      });
+    }
+
+    const result = await uploadToCloudinary(
+      file,
+      "ishop/brands"
+    );
+
+    await BrandModel.create({
+      name: req.body.name,
+      slug: req.body.slug,
+      image: {
+        url: result.secure_url,
+        public_id: result.public_id,
+      },
+    });
+
+    res.send(messages.created);
+  } catch (error) {
+    console.log(error);
+    res.send(messages.catch_error);
+  }
+};
 
 const status = async (req, res) => {
     try {
@@ -113,67 +117,78 @@ const status = async (req, res) => {
 
 
 const deleteData = async (req, res) => {
-    try {
-        const id = req.params.id;
-        console.log(id)
-        const brand = await BrandModel.findById({ _id: id });
-        if (!brand) return res.send(messages.not_found)
-        await BrandModel.findByIdAndDelete(id)
-        fs.unlinkSync("./public/images/brand/" + brand.image_name)
-        res.send(messages.delete_resourse)
+  try {
+    const id = req.params.id;
 
+    const brand = await BrandModel.findById(id);
 
-    } catch (error) {
-        console.log(error)
-        res.send(messages.catch_error);
+    if (!brand) {
+      return res.send(messages.not_found);
     }
 
-}
+    // Delete image from Cloudinary
+    if (brand.image?.public_id) {
+      await cloudinary.uploader.destroy(
+        brand.image.public_id
+      );
+    }
+
+    await BrandModel.findByIdAndDelete(id);
+
+    res.send(messages.delete_resourse);
+  } catch (error) {
+    console.log(error);
+    res.send(messages.catch_error);
+  }
+};
 
 
 const updateData = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const brand_image = req.files != null ? req.files.image : null
-        const { name, slug } = req.body;
-        const brand = await BrandModel.findById(id);
-        if (!brand) return res.send({ msg: "brand not found", flag: 0 })
-        const update = {};
+  try {
+    const id = req.params.id;
 
-        if (name) update.name = name
-        if (slug) update.slug = slug
+    const { name, slug } = req.body;
 
+    const brand = await BrandModel.findById(id);
 
-        if (brand_image != null) {
-            const image = uniqueImageName(brand_image.name);
-            const destination = "./public/images/brand/" + image;
-            brand_image.mv(
-                destination,
-                async (error) => {
-                    if (error) {
-                        return res.send(messages.image_upload_failed);
-                    } else {
-                        if (image) update.image_name = image
-                        await BrandModel.findByIdAndUpdate(id, { $set: update });
-                        res.send(messages.update);
-                        fs.unlinkSync("./public/images/brand/" + brand.image_name)
-
-                    }
-                }
-            )
-
-
-        } else {
-            await BrandModel.findByIdAndUpdate(id, { $set: update });
-            res.send(messages.update);
-        }
-
-
-
-    } catch (error) {
-        console.log(error)
-        res.send(messages.catch_error);
+    if (!brand) {
+      return res.send({
+        msg: "Brand not found",
+        flag: 0,
+      });
     }
-}
 
+    const update = {};
+
+    if (name) update.name = name;
+    if (slug) update.slug = slug;
+
+    if (req.files?.image) {
+      // Delete old Cloudinary image
+      if (brand.image?.public_id) {
+        await cloudinary.uploader.destroy(
+          brand.image.public_id
+        );
+      }
+
+      // Upload new image
+      const result = await uploadToCloudinary(
+        req.files.image,
+        "ishop/brands"
+      );
+
+      update.image = {
+        url: result.secure_url,
+        public_id: result.public_id,
+      };
+    }
+
+    await BrandModel.findByIdAndUpdate(id, update);
+
+    res.send(messages.update);
+  } catch (error) {
+    console.log(error);
+    res.send(messages.catch_error);
+  }
+};
 module.exports = { getData, createData, status, deleteData, getDataById, updateData };

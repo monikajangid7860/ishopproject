@@ -143,67 +143,76 @@ const status = async (req, res) => {
 
 
 const deleteData = async (req, res) => {
-    try {
-        const id = req.params.id;
-        console.log(id)
-        const category = await CategoryModel.findById({ _id: id });
-        if (!category) return res.send(messages.not_found)
-        await CategoryModel.findByIdAndDelete(id)
-        fs.unlinkSync("./public/images/category/" + category.image_name)
-        res.send(messages.delete_resourse)
+  try {
+    const id = req.params.id;
 
+    const category = await CategoryModel.findById(id);
 
-    } catch (error) {
-        console.log(error)
-        res.send(messages.catch_error);
+    if (!category) {
+      return res.send(messages.not_found);
     }
 
-}
+    // Delete image from Cloudinary
+    if (category.image?.public_id) {
+      await cloudinary.uploader.destroy(category.image.public_id);
+    }
+
+    // Delete category from MongoDB
+    await CategoryModel.findByIdAndDelete(id);
+
+    res.send(messages.delete_resourse);
+  } catch (error) {
+    console.log(error);
+    res.send(messages.catch_error);
+  }
+};
 
 
 const updateData = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const category_image = req.files != null ? req.files.image : null
-        const { name, slug } = req.body;
-        const category = await CategoryModel.findById(id);
-        if (!category) return res.send({ msg: "category not find", flag: 0 })
-        const update = {};
+  try {
+    const id = req.params.id;
 
-        if (name) update.name = name
-        if (slug) update.slug = slug
+    const { name, slug } = req.body;
+    const category = await CategoryModel.findById(id);
 
-
-        if (category_image != null) {
-            const image = uniqueImageName(category_image.name);
-            const destination = "./public/images/category/" + image;
-            category_image.mv(
-                destination,
-                async (error) => {
-                    if (error) {
-                        return res.send(messages.image_upload_failed);
-                    } else {
-                        if (image) update.image_name = image
-                        await CategoryModel.findByIdAndUpdate(id, { $set: update });
-                        res.send(messages.update);
-                        fs.unlinkSync("./public/images/category/" + category.image_name)
-
-                    }
-                }
-            )
-
-
-        } else {
-            await CategoryModel.findByIdAndUpdate(id, { $set: update });
-            res.send(messages.update);
-        }
-
-
-
-    } catch (error) {
-        console.log(error)
-        res.send(messages.catch_error);
+    if (!category) {
+      return res.send({
+        msg: "Category not found",
+        flag: 0,
+      });
     }
-}
 
+    const update = {};
+
+    // Basic fields
+    if (name) update.name = name;
+    if (slug) update.slug = slug;
+
+    // Image update
+    if (req.files?.image) {
+      // Delete old Cloudinary image
+      if (category.image?.public_id) {
+        await cloudinary.uploader.destroy(category.image.public_id);
+      }
+
+      // Upload new image
+      const result = await uploadToCloudinary(
+        req.files.image,
+        "ishop/categories"
+      );
+
+      update.image = {
+        url: result.secure_url,
+        public_id: result.public_id,
+      };
+    }
+
+    await CategoryModel.findByIdAndUpdate(id, update);
+
+    res.send(messages.update);
+  } catch (error) {
+    console.log(error);
+    res.send(messages.catch_error);
+  }
+};
 module.exports = { getData, createData, status, deleteData, getDataById, updateData };

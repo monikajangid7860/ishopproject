@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getCategories } from "@/api-calls/category";
 import StatusToggleBtn from "@/components/admin/StatusToggleBtn";
 import DeleteBtn from "@/components/admin/DeleteBtn";
+import { getCategoryImage } from "@/helper/getCategoryImage";
 
 export default async function CategoryTable(){
   const categoryJSON=await getCategories();
@@ -40,9 +41,15 @@ export default async function CategoryTable(){
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-xl bg-white ring-1 ring-gray-200 shadow-sm flex items-center justify-center overflow-hidden">
-                      {cat.image_name?(
-                        <img src={categoryJSON.imageUrl+cat.image_name} alt={cat.name} className="w-full h-full object-contain p-1"/>
-                      ):(
+              {cat.image ? (
+  <img
+    src={getCategoryImage(cat, categoryJSON.imageUrl)}
+    alt={cat.name}
+    className="w-full h-full object-contain p-1"
+  />
+) : (
+  <ImageIcon size={26} className="text-gray-400" />
+)}:(
                         <ImageIcon size={26} className="text-gray-400"/>
                       )}
                     </div>

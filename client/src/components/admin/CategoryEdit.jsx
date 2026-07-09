@@ -2,6 +2,7 @@
 import { axiosApiInstance,slugGenerator,notify } from "@/helper/helper";
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
+import { getCategoryImage } from "@/helper/getCategoryImage";
 
 const CategoryEdit=({ category,baseURL })=>{
   const router=useRouter();
@@ -68,9 +69,15 @@ const CategoryEdit=({ category,baseURL })=>{
           <label className="text-sm font-medium text-gray-700">Category Image</label>
           <div className="flex items-center gap-6">
             <div className="w-28 h-28 rounded-xl bg-white ring-1 ring-gray-200 shadow-sm flex items-center justify-center overflow-hidden">
-              {category.image_name?(
-                <img src={baseURL+category.image_name} alt={category.name} className="w-full h-full object-contain p-2"/>
-              ):null}
+              {category.image ? (
+  <img
+    src={getCategoryImage(category, baseURL)}
+    alt={category.name}
+    className="w-full h-full object-contain p-2"
+  />
+) : (
+  <ImageIcon size={26} className="text-gray-400" />
+)}
             </div>
             <input
               type="file"
