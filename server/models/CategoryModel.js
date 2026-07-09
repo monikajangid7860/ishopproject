@@ -12,8 +12,10 @@ const CategorySchema = new mongoose.Schema(
             required: true,
             unique: true
         },
-        image_name: {
-            type: String,
+        image: {
+  url: String,
+  public_id: String,
+
         },
         on_home: {
             type: Boolean,

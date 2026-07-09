@@ -1,7 +1,8 @@
-const { uniqueImageName } = require("../helper/helper");
+const uploadToCloudinary = require("../helper/cloudinaryUpload");
+const cloudinary = require("../config/cloudinary");
 const messages = require("../message");
 const { CategoryModel } = require("../models/CategoryModel");
-const fs = require("fs");
+
 
 
 const getData = async (req, res) => {
@@ -62,43 +63,45 @@ const getDataById = async (req, res) => {
 }
 
 const createData = async (req, res) => {
-    try {
-        const file = req.files.image;
-        const categoryExist = await CategoryModel.findOne({ name: req.body.name });
+  try {
+    const file = req.files?.image;
 
-        if (categoryExist) {
-            return res.send({
-                messages: "Resourse-already created",
-                flag: 0
-            })
-        }
-        const image = uniqueImageName(file.name);
-        const destination = "./public/images/category/" + image;
-
-        file.mv(
-            destination,
-            async (error) => {
-                if (error) {
-                    return res.send(messages.image_upload_failed);
-                } else {
-                    await CategoryModel.create({
-                        name: req.body.name,
-                        slug: req.body.slug,
-                        image_name: image
-                    })
-                    return res.send(messages.created)
-                }
-
-            }
-        )
-
-
-    } catch (error) {
-        console.log(error)
-        res.send(messages.catch_error);
+    if (!file) {
+      return res.send(messages.image_upload_failed);
     }
 
-}
+    const categoryExist = await CategoryModel.findOne({
+      name: req.body.name,
+    });
+
+    if (categoryExist) {
+      return res.send({
+        message: "Resource already created",
+        flag: 0,
+      });
+    }
+
+    const result = await uploadToCloudinary(
+      file,
+      "ishop/categories"
+    );
+
+    await CategoryModel.create({
+      name: req.body.name,
+      slug: req.body.slug,
+
+      image: {
+        url: result.secure_url,
+        public_id: result.public_id,
+      },
+    });
+
+    res.send(messages.created);
+  } catch (error) {
+    console.log(error);
+    res.send(messages.catch_error);
+  }
+};
 
 const status = async (req, res) => {
     try {
