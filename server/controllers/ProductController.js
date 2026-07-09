@@ -310,14 +310,32 @@ const deleteImage = async (req, res) => {
     const index = parseInt(image_index);
 
     const product = await ProductModel.findById(product_id);
-    if (!product) return res.send({ msg: "Product not found", flag: 0 });
 
-    const removed = product.other_images.splice(index, 1)[0];
+    if (!product) {
+      return res.send({
+        msg: "Product not found",
+        flag: 0,
+      });
+    }
+
+    const image = product.other_images[index];
+
+    if (!image) {
+      return res.send({
+        msg: "Image not found",
+        flag: 0,
+      });
+    }
+
+    // Delete from Cloudinary
+    if (image.public_id) {
+      await cloudinary.uploader.destroy(image.public_id);
+    }
+
+    // Remove from MongoDB
+    product.other_images.splice(index, 1);
+
     await product.save();
-
-    try {
-      fs.unlinkSync("./public/images/product/other_images/" + removed);
-    } catch {}
 
     res.send({
       msg: "Image deleted",
@@ -326,7 +344,11 @@ const deleteImage = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    res.send({ msg: "Error deleting image", flag: 0 });
+
+    res.send({
+      msg: "Error deleting image",
+      flag: 0,
+    });
   }
 };
 
@@ -334,28 +356,31 @@ const deleteImage = async (req, res) => {
 const deleteData = async (req, res) => {
   try {
     const product = await ProductModel.findById(req.params.id);
-    if (!product) return res.send(messages.not_found);
 
-    if (product.thumbnail) {
-      try {
-        fs.unlinkSync(
-          "./public/images/product/main_images/" + product.thumbnail
-        );
-      } catch {}
+    if (!product) {
+      return res.send(messages.not_found);
     }
 
+    // Delete thumbnail
+    if (product.thumbnail?.public_id) {
+      await cloudinary.uploader.destroy(product.thumbnail.public_id);
+    }
+
+    // Delete all other images
     if (product.other_images?.length) {
-      product.other_images.forEach((img) => {
-        try {
-          fs.unlinkSync("./public/images/product/other_images/" + img);
-        } catch {}
-      });
+      for (const image of product.other_images) {
+        if (image.public_id) {
+          await cloudinary.uploader.destroy(image.public_id);
+        }
+      }
     }
 
     await ProductModel.findByIdAndDelete(req.params.id);
+
     res.send(messages.delete_resourse);
   } catch (error) {
     console.log(error);
+
     res.send(messages.catch_error);
   }
 };
