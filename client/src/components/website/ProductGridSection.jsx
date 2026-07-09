@@ -4,7 +4,7 @@ import { useState } from "react";
 import ProductCard2 from "./ProductCard2.jsx";
 
 export default function ProductGridSection({ products, imgurl }) {
-  const ITEMS_PER_PAGE = 8;
+  const ITEMS_PER_PAGE = 12;
 
   const safeProducts = Array.isArray(products) ? products : [];
   const [page, setPage] = useState(1);
