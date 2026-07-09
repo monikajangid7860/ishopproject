@@ -41,17 +41,19 @@ export default async function CategoryTable(){
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-xl bg-white ring-1 ring-gray-200 shadow-sm flex items-center justify-center overflow-hidden">
-              {cat.image ? (
+              
+{cat.image ? (
   <img
     src={getCategoryImage(cat, categoryJSON.imageUrl)}
     alt={cat.name}
     className="w-full h-full object-contain p-1"
   />
 ) : (
-  <ImageIcon size={26} className="text-gray-400" />
-)}:(
-                        <ImageIcon size={26} className="text-gray-400"/>
-                      )}
+  <ImageIcon
+    size={26}
+    className="text-gray-400"
+  />
+)}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">

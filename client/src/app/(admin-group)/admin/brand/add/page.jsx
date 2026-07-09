@@ -16,7 +16,13 @@ const AddBrandForm = () => {
     event.preventDefault();
 
     const formData = new FormData();
-    formData.append("image", event.target.image.files[0]);
+const file = event.target.image.files[0];
+
+if (!file) {
+  return notify("Please select a brand image", 0);
+}
+
+formData.append("image", file);
     formData.append("name", brandRef.current.value);
     formData.append("slug", slugRef.current.value);
 
