@@ -10,7 +10,14 @@ export default async function page({ params }) {
     const categoryData = await getCategoryById(id);
     const baseURL = categoryData.imageUrl
 
-    return (
-        <CategoryEdit category={categoryData.category} baseURL={baseURL} />
-    )
+    if (!categoryData?.category) {
+  return <div>Category not found</div>;
+}
+
+return (
+  <CategoryEdit
+    category={categoryData.category}
+    baseURL={categoryData.imageUrl}
+  />
+);
 }
