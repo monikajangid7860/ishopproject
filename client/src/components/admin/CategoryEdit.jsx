@@ -3,6 +3,7 @@ import { axiosApiInstance,slugGenerator,notify } from "@/helper/helper";
 import { useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getCategoryImage } from "@/helper/getCategoryImage";
+import { ImageIcon } from "lucide-react";
 
 const CategoryEdit=({ category,baseURL })=>{
   const router=useRouter();
@@ -21,7 +22,7 @@ const CategoryEdit=({ category,baseURL })=>{
     formData.append("name",categoryRef.current.value);
     formData.append("slug",slugRef.current.value);
 
-    axiosApiInstance.put("category/update/"+category._id,formData).then(
+    axiosApiInstance.put(`category/update/${category?._id}`, formData).then(
       (response)=>{
         notify(response.data.msg,response.data.flag);
         if(response.data.flag==1){
@@ -58,7 +59,7 @@ const CategoryEdit=({ category,baseURL })=>{
           <input
             type="text"
             ref={slugRef}
-            defaultValue={category.slug}
+            defaultValue={category?.slug}
             readOnly
             className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600 cursor-not-allowed"
           />
