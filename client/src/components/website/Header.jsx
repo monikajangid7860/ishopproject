@@ -212,7 +212,8 @@ dispatch(loadWish(normalizedItems));
     try {
       // Read guest cart directly from localStorage
       const guestCart = JSON.parse(localStorage.getItem("cart") || "[]");
-
+console.log("===== GUEST CART =====");
+console.log(guestCart);
       // Merge only if guest cart exists
       if (guestCart.length > 0) {
         await axiosApiInstance.post("/cart/sync-cart", {
@@ -221,10 +222,13 @@ dispatch(loadWish(normalizedItems));
           source: "guest",
         });
       }
+  console.log("===== MERGE RESPONSE =====");
+  console.log(mergeRes.data);
 
       // Always fetch the latest merged cart
       const res = await axiosApiInstance.get(`/cart/${user._id}`);
-
+console.log("===== DB CART AFTER MERGE =====");
+console.log(res.data.cart);
       const normalizedCart =
         res.data?.cart?.items?.map((row) => ({
           id: row.product_id._id,

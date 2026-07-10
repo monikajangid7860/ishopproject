@@ -59,6 +59,11 @@ const syncCart = async (req, res) => {
     if (!user_id) {
       return res.send({ flag: 0, msg: "user_id is required" });
     }
+    console.log("===== EXISTING DB ITEMS =====");
+console.log(existingCart?.items);
+
+console.log("===== LOCAL ITEMS =====");
+console.log(localCart);
 
     const existingCart = await CartModel.findOne({ user_id });
 
@@ -77,7 +82,8 @@ const syncCart = async (req, res) => {
       existingCart?.items || [],
       localCart
     );
-
+console.log("===== MERGED ITEMS =====");
+console.log(mergedItems);
     const updatedCart = await CartModel.findOneAndUpdate(
       { user_id },
       { items: mergedItems },
