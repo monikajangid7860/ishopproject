@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import React from "react";
 import { Plus,Pencil,ImageIcon,Tag } from "lucide-react";
 import Link from "next/link";
