@@ -215,10 +215,8 @@ dispatch(loadWish(normalizedItems));
 console.log("===== GUEST CART =====");
 console.log(guestCart);
       // Merge only if guest cart exists
-      let mergeRes = null;
-
-if (guestCart.length > 0) {
-  mergeRes = await axiosApiInstance.post("/cart/sync-cart", {
+    if (guestCart.length > 0) {
+  const mergeRes = await axiosApiInstance.post("/cart/sync-cart", {
     user_id: user._id,
     cart_data: guestCart,
     source: "guest",
@@ -226,12 +224,9 @@ if (guestCart.length > 0) {
 
   console.log("===== MERGE RESPONSE =====");
   console.log(mergeRes.data);
+} else {
+  console.log("NO GUEST CART TO MERGE");
 }
-  console.log("===== MERGE RESPONSE =====");
-  console.log(mergeRes.data);
-
-console.log("MERGED FROM BACKEND");
-console.log(mergeRes.data.cart);
       // Always fetch the latest merged cart
       const res = await axiosApiInstance.get(`/cart/${user._id}`);
 console.log("===== DB CART AFTER MERGE =====");
