@@ -92,7 +92,8 @@ console.log(mergedItems);
       "items.product_id",
       "name final_price original_price thumbnail"
     );
-
+console.log("RETURNING CART");
+console.log(updatedCart.items);
     res.send({
       flag: 1,
       msg: "Guest cart merged successfully",

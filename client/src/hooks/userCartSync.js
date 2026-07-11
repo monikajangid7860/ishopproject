@@ -1,77 +1,150 @@
-import { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
-import { axiosApiInstance } from "@/helper/helper";
+"use client";
 
-export default function useCartSync() {
-  const cart = useSelector((state) => state.cart.items);
-  const user = useSelector((state) => state.user.user);
+import Link from "next/link";
+import useRecentlyViewedProducts from "@/hooks/useRecentlyViewedProducts";
+import { getThumbnail } from "@/helper/getProductImage";
+import { ArrowRight } from "lucide-react";
 
-  const previousUserRef = useRef(null);
-  const skipNextSyncRef = useRef(false);
-  const debounceRef = useRef(null);
+export default function RecentlyViewed() {
+  const { products, loading } = useRecentlyViewedProducts();
 
-  useEffect(() => {
-    /* ---------------- GUEST MODE ---------------- */
-    if (!user?._id) {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
+  if (loading || !products.length) return null;
 
-      localStorage.setItem("cart", JSON.stringify(cart));
+  return (
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-      previousUserRef.current = null;
-      skipNextSyncRef.current = false;
+      {/* Header */}
+      <div className="flex items-end justify-between mb-8">
+        <div>
+          <p className="text-xs uppercase tracking-[0.25em] text-gray-500 font-medium">
+            Continue Shopping
+          </p>
 
-      return;
-    }
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-gray-900">
+            Recently Viewed
+          </h2>
+        </div>
 
-    /* ---------------- USER JUST LOGGED IN ---------------- */
-    if (previousUserRef.current !== user._id) {
-      previousUserRef.current = user._id;
+        <Link
+          href="/products"
+          className="group flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
+        >
+          View All
+          <ArrowRight
+            size={16}
+            className="transition-transform group-hover:translate-x-1"
+          />
+        </Link>
+      </div>
 
-      // Ignore the next cart update because it will come
-      // from dispatch(loadCart()) after fetching DB cart.
-      skipNextSyncRef.current = true;
+      {/* Cards */}
+      <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
 
-      return;
-    }
+        {products.map((product) => (
+          <Link
+            href={`/product/${product._id}`}
+            key={product._id}
+            className="group shrink-0 snap-start"
+          >
+            <article
+              className="
+              w-[290px]
+              rounded-3xl
+              border
+              border-gray-200
+              bg-white
+              p-5
+              transition-all
+              duration-300
+              hover:-translate-y-1
+              hover:shadow-xl
+              hover:border-gray-300
+            "
+            >
 
-    /* ---------------- IGNORE INITIAL DB HYDRATION ---------------- */
-    if (skipNextSyncRef.current) {
-      skipNextSyncRef.current = false;
-      return;
-    }
+              {/* Image */}
+              <div
+                className="
+                h-40
+                rounded-2xl
+                bg-gray-50
+                flex
+                items-center
+                justify-center
+                overflow-hidden
+              "
+              >
+                <img
+                  src={getThumbnail(
+                    product,
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/`
+                  )}
+                  alt={product.name}
+                  className="
+                    h-32
+                    object-contain
+                    transition-transform
+                    duration-500
+                    group-hover:scale-105
+                  "
+                />
+              </div>
 
-    /* ---------------- DEBOUNCE ---------------- */
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
+              {/* Content */}
+              <div className="mt-5">
 
-    const payload = cart.map((item) => ({
-      product_id: item.id,
-      quantity: item.quantity,
-      price_snapshot:
-        item.final_price ??
-        item.price ??
-        item.price_snapshot ??
-        null,
-    }));
+                <h3
+                  className="
+                  text-[15px]
+                  font-semibold
+                  leading-6
+                  text-gray-900
+                  line-clamp-2
+                  min-h-[48px]
+                "
+                >
+                  {product.name}
+                </h3>
 
-    debounceRef.current = setTimeout(async () => {
-      try {
-        await axiosApiInstance.post("/cart/update", {
-          user_id: user._id,
-          items: payload,
-        });
-      } catch (err) {
-        console.error("Cart sync failed:", err);
-      }
-    }, 500);
+                <p className="mt-4 text-2xl font-bold text-gray-900">
+                  ₹{product.final_price}
+                </p>
 
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, [cart, user]);
+                <div
+                  className="
+                  mt-5
+                  inline-flex
+                  items-center
+                  gap-2
+                  rounded-full
+                  border
+                  border-gray-300
+                  px-4
+                  py-2
+                  text-sm
+                  font-medium
+                  transition-all
+                  group-hover:bg-black
+                  group-hover:text-white
+                  group-hover:border-black
+                "
+                >
+                  View Product
+
+                  <ArrowRight
+                    size={15}
+                    className="transition-transform group-hover:translate-x-1"
+                  />
+                </div>
+
+              </div>
+
+            </article>
+          </Link>
+        ))}
+
+      </div>
+
+    </section>
+  );
 }

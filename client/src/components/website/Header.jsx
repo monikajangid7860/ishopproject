@@ -225,6 +225,8 @@ console.log(guestCart);
   console.log("===== MERGE RESPONSE =====");
   console.log(mergeRes.data);
 
+console.log("MERGED FROM BACKEND");
+console.log(mergeRes.data.cart);
       // Always fetch the latest merged cart
       const res = await axiosApiInstance.get(`/cart/${user._id}`);
 console.log("===== DB CART AFTER MERGE =====");
