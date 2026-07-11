@@ -532,9 +532,9 @@ useEffect(() => {
     className="
       lg:hidden
       bg-white
-      border-t
+      border-t border-gray-100
+      shadow-xl
       animate-slideDown
-      shadow-lg
     "
   >
     <div className="px-5 py-6">
@@ -544,25 +544,35 @@ useEffect(() => {
         href={user?._id ? "/profile" : "/login"}
         onClick={() => setMobileOpen(false)}
         className="
+          group
           flex items-center justify-between
-          pb-5 border-b
+          pb-5 mb-5 border-b border-gray-100
+          -mx-2 px-3 py-2
+          rounded-xl
           hover:bg-gray-50
-          rounded-lg
-          -mx-2 px-2
-          transition
+          active:scale-[0.98]
+          transition-all duration-200
         "
       >
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 rounded-full bg-[#01A49E]/10 flex items-center justify-center">
-            <UserIcon className="text-[#01A49E]" size={22} />
+        <div className="flex items-center gap-3.5">
+          <div
+            className="
+              h-12 w-12 rounded-full
+              bg-gradient-to-br from-[#01A49E]/15 to-[#01A49E]/5
+              ring-1 ring-[#01A49E]/10
+              flex items-center justify-center
+              flex-shrink-0
+            "
+          >
+            <UserIcon className="text-[#01A49E]" size={21} />
           </div>
 
           <div className="min-w-0">
-            <h3 className="font-semibold text-gray-900 truncate">
+            <h3 className="font-semibold text-gray-900 truncate leading-tight">
               {user?._id ? user.name : "Welcome Guest"}
             </h3>
 
-            <p className="text-sm text-gray-500">
+            <p className="text-[13px] text-gray-500 mt-0.5">
               {user?._id
                 ? "Manage your account"
                 : "Login to continue shopping"}
@@ -571,28 +581,36 @@ useEffect(() => {
         </div>
 
         <ChevronRight
-          size={20}
-          className="text-gray-400 flex-shrink-0"
+          size={18}
+          className="
+            text-gray-300 flex-shrink-0
+            group-hover:text-gray-400
+            group-hover:translate-x-0.5
+            transition-all duration-200
+          "
         />
       </Link>
 
       {/* ================= NAVIGATION ================= */}
-      <div className="mt-5 space-y-1">
+      <div className="space-y-0.5">
         {navItems.map((item) => (
           <Link
             key={item.name}
             href={item.href}
             onClick={() => setMobileOpen(false)}
             className="
+              relative
               flex items-center
-              py-3
-              px-3
+              py-3 px-3
               rounded-lg
               text-[15px]
               font-medium
               text-gray-700
-              hover:bg-gray-100
-              transition
+              hover:bg-gray-50
+              hover:text-[#01A49E]
+              hover:pl-4
+              active:bg-gray-100
+              transition-all duration-200
             "
           >
             {item.name}
@@ -602,7 +620,7 @@ useEffect(() => {
 
       {/* ================= QUICK ACTIONS ================= */}
       <div className="mt-6">
-        <h4 className="text-xs uppercase tracking-wider text-gray-400 mb-3">
+        <h4 className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-3">
           Quick Access
         </h4>
 
@@ -615,22 +633,32 @@ useEffect(() => {
               relative
               flex flex-col items-center justify-center
               gap-2
-              rounded-xl
+              rounded-2xl
               border border-gray-200
               py-4
-              hover:bg-gray-50
-              transition
+              hover:border-gray-300 hover:bg-gray-50
+              active:scale-[0.97]
+              transition-all duration-200
             "
           >
-            <Heart size={20} />
+            <Heart size={20} className="text-gray-700" />
 
             {mounted && wishCount > 0 && (
-              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+              <span
+                className="
+                  absolute top-2.5 right-2.5
+                  min-w-[18px] h-[18px] px-1
+                  rounded-full
+                  bg-red-500 text-white text-[10px] font-semibold
+                  flex items-center justify-center
+                  ring-2 ring-white
+                "
+              >
                 {wishCount}
               </span>
             )}
 
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium text-gray-800">
               Wishlist
             </span>
           </Link>
@@ -642,18 +670,29 @@ useEffect(() => {
               relative
               flex flex-col items-center justify-center
               gap-2
-              rounded-xl
-              bg-[#01A49E]
+              rounded-2xl
+              bg-gradient-to-b from-[#01A49E] to-[#019490]
               text-white
-              py-2
-              hover:opacity-95
-              transition
+              py-4
+              shadow-sm shadow-[#01A49E]/30
+              hover:shadow-md hover:shadow-[#01A49E]/40
+              active:scale-[0.97]
+              transition-all duration-200
             "
           >
             <ShoppingCart size={20} />
 
             {mounted && cartCount > 0 && (
-              <span className="absolute top-2 right-2 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center">
+              <span
+                className="
+                  absolute top-2.5 right-2.5
+                  min-w-[18px] h-[18px] px-1
+                  rounded-full
+                  bg-red-500 text-white text-[10px] font-semibold
+                  flex items-center justify-center
+                  ring-2 ring-[#01A49E]
+                "
+              >
                 {cartCount}
               </span>
             )}
@@ -667,78 +706,72 @@ useEffect(() => {
       </div>
 
       {/* ================= ACCOUNT ================= */}
-      <div className="mt-6 border-t pt-5">
-
+      <div className="mt-6 pt-5 border-t border-gray-100">
 
         {user?._id ? (
-          <>
-            <button
-              onClick={() => {
-                handleLogout(dispatch);
-                setMobileOpen(false);
-              }}
-              className="
-                mt-4
-                w-full
-                rounded-xl
-                bg-red-50
-                py-3
-                font-semibold
-                text-red-600
-                hover:bg-red-100
-                transition
-              "
-            >
-              Logout
-            </button>
-          </>
+          <button
+            onClick={() => {
+              handleLogout(dispatch);
+              setMobileOpen(false);
+            }}
+            className="
+              w-full
+              flex items-center justify-center gap-2
+              rounded-xl
+              bg-red-50
+              py-3.5
+              font-semibold text-[15px]
+              text-red-600
+              hover:bg-red-100
+              active:scale-[0.98]
+              transition-all duration-200
+            "
+          >
+            <LogOut size={17} />
+            Logout
+          </button>
         ) : (
           <div className="grid grid-cols-2 gap-3">
 
-          <Link
-            href="/login"
-            onClick={() => setMobileOpen(false)}
-            className="
-              relative
-              flex flex-col items-center justify-center
-              gap-2
-              rounded-xl
-              border border-gray-200
-              py-4
-              hover:bg-gray-50
-              transition
-            "
-          >
-            
-            <span className="text-sm font-medium">
-              login
-            </span>
-          </Link>
+            <Link
+              href="/login"
+              onClick={() => setMobileOpen(false)}
+              className="
+                flex items-center justify-center gap-1.5
+                rounded-xl
+                border border-gray-200
+                py-3.5
+                font-medium text-[14px] text-gray-800
+                hover:border-gray-300 hover:bg-gray-50
+                active:scale-[0.97]
+                transition-all duration-200
+              "
+            >
+              <LogIn size={16} />
+              Login
+            </Link>
 
-          <Link
-            href="/signup"
-            onClick={() => setMobileOpen(false)}
-            className="
-              relative
-              flex flex-col items-center justify-center
-              gap-2
-              rounded-xl
-              bg-[#01A49E]
-              text-white
-              py-2
-              hover:opacity-95
-              transition
-            "
-          >
-            
+            <Link
+              href="/signup"
+              onClick={() => setMobileOpen(false)}
+              className="
+                flex items-center justify-center gap-1.5
+                rounded-xl
+                bg-gradient-to-b from-[#01A49E] to-[#019490]
+                text-white
+                py-3.5
+                font-medium text-[14px]
+                shadow-sm shadow-[#01A49E]/30
+                hover:shadow-md hover:shadow-[#01A49E]/40
+                active:scale-[0.97]
+                transition-all duration-200
+              "
+            >
+              <UserPlus size={16} />
+              Sign Up
+            </Link>
 
-
-            <span className="text-sm font-medium">
-              signup
-            </span>
-          </Link>
-
-        </div>
+          </div>
         )}
 
       </div>
@@ -746,6 +779,7 @@ useEffect(() => {
     </div>
   </div>
 )}
+
 
     </header>
   );
