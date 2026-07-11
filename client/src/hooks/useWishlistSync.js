@@ -23,7 +23,7 @@ function normalizeServerWishlist(items = []) {
     .map((row) => ({
       id: row.product_id?._id || row.product_id,
       title: row.product_id?.name || row.title,
-      image: row.product_id?.thumbnail || row.image,
+      image: row.product_id?.thumbnail?.url || row.image?.url || row.image || "/placeholder.png",
       price: Number(row.product_id?.final_price ?? row.price),
     }));
 }
