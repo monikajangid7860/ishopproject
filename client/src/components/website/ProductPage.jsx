@@ -290,9 +290,9 @@ export default function ProductPage({ product }) {
         className="
           fixed inset-x-4 bottom-4 z-40
           flex items-center justify-between gap-4
-          rounded-2xl bg-slate-300
+          rounded-2xl bg-white
           px-5 py-3.5
-          text-white
+          text-slate-900
           shadow-xl shadow-slate-900/20
           lg:hidden
         "
