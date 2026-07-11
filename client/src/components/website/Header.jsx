@@ -14,9 +14,7 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 
-import useWishlistSync from "@/hooks/useWishlistSync";
 import { loadUserFromLS } from "@/redux/reducer/UserReducer";
-import { loadWish } from "@/redux/reducer/WishReducer";
 import { handleLogout } from "@/redux/reducer/handleLogout";
 import { axiosApiInstance } from "@/helper/helper";
 import { useRouter } from "next/navigation";
@@ -27,8 +25,6 @@ import { getBrands } from "@/api-calls/brand";
 
 
 export default function Header() {
-  useWishlistSync();
-
   /* ---------------- REDUX ---------------- */
   const cart = useSelector((state) => state.cart?.items || []);
   const wish = useSelector((state) => state.wish?.items || []);
@@ -116,21 +112,8 @@ function highlightMatch(text, query) {
   }, [dispatch]);
 
   /* ---------------- WISHLIST SYNC FLAGS ---------------- */
-  const wishlistSyncedRef = useRef(false);
-  const [wishlistReady, setWishlistReady] = useState(false);
-//   useEffect(() => {
-//   if (user) return;
-
-//   const ls = localStorage.getItem("wish");
-//   if (ls) {
-//     dispatch(loadWish(JSON.parse(ls)));
-//   } else {
-//     dispatch(loadWish([]));
-//   }
-// }, [user, dispatch]);
-
-
-  /* ---------------- LOAD WISHLIST ---------------- */
+  /* ---------------- LOAD WISHLIST (moved to AppInitializer) ---------------- */
+/*
 useEffect(() => {
   if (!user) return;
   if (!wishlistReady) return;
@@ -169,7 +152,9 @@ dispatch(loadWish(normalizedItems));
 }, [user, wishlistReady, dispatch]);
 
 
-  /* ---------------- WISHLIST SYNC ---------------- */
+*/
+  /* ---------------- WISHLIST SYNC (moved to AppInitializer) ---------------- */
+/*
   useEffect(() => {
     if (!user) return;
     if (wishlistSyncedRef.current) return;
@@ -196,6 +181,7 @@ dispatch(loadWish(normalizedItems));
     syncGuestWishlist();
   }, [user]);
   
+*/
   function handleSearchSubmit() {
   const value = searchValue.trim().toLowerCase();
   if (!value) return;

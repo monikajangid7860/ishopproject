@@ -1,172 +1,115 @@
-// controllers/wishlist.controller.js
 const WishlistModel = require("../models/WishlistModel");
+
+const populateWishlist = (query) => query.populate(
+  "items.product_id",
+  "name thumbnail final_price"
+);
+
+function normalizeItems(items = []) {
+  const unique = new Map();
+
+  for (const item of Array.isArray(items) ? items : []) {
+    const productId = item?.product_id?._id || item?.product_id || item?.id || item?._id;
+    if (productId) unique.set(String(productId), { product_id: productId });
+  }
+
+  return [...unique.values()];
+}
+
+async function fetchWishlist(userId) {
+  return populateWishlist(WishlistModel.findOne({ user_id: userId }));
+}
 
 exports.getWishlist = async (req, res) => {
   try {
-    const user_id = req.user?._id || req.params.user_id;
+    const userId = req.user?._id || req.params.user_id;
+    if (!userId) return res.send({ flag: 1, wishlist: { items: [] } });
 
-    if (!user_id) {
-      return res.send({ flag: 1, wishlist: { items: [] } });
-    }
-
-    const wishlist = await WishlistModel
-      .findOne({ user_id })
-      .populate("items.product_id", "name thumbnail final_price");
-
-    res.send({
-      flag: 1,
-      wishlist: wishlist || { items: [] },
-    });
-  } catch (err) {
-    console.error(err);
-    res.send({ flag: 0, msg: "Failed to fetch wishlist" });
+    const wishlist = await fetchWishlist(userId);
+    return res.send({ flag: 1, wishlist: wishlist || { items: [] } });
+  } catch (error) {
+    console.error("Get wishlist failed", error);
+    return res.send({ flag: 0, msg: "Failed to fetch wishlist" });
   }
 };
 
+// The only endpoint that merges guest storage into an authenticated wishlist.
 exports.mergeWishlist = async (req, res) => {
   try {
-    const { user_id, items = [] } = req.body;
-
-    if (!user_id) {
-      return res.send({ flag: 0, msg: "user_id required" });
+    const { user_id, items, merge_token } = req.body;
+    if (!user_id || !merge_token) {
+      return res.send({ flag: 0, msg: "user_id and merge_token are required" });
     }
 
-    const dbWishlist = await WishlistModel.findOne({ user_id });
-    const map = new Map();
+    const guestItems = normalizeItems(items);
+    let existingWishlist = await WishlistModel.findOne({ user_id });
 
-    // DB items first
-    dbWishlist?.items.forEach((item) => {
-      map.set(String(item.product_id), item);
-    });
-
-    // Guest items (safe)
-    if (Array.isArray(items)) {
-      items.forEach((item) => {
-        const key = String(item.product_id || item.id);
-        map.set(key, { product_id: key });
+    if (existingWishlist?.guest_merge_token === merge_token) {
+      return res.send({
+        flag: 1,
+        msg: "Guest wishlist already merged",
+        wishlist: await fetchWishlist(user_id),
       });
     }
 
-    const mergedItems = Array.from(map.values());
+    if (!existingWishlist) {
+      try {
+        const created = await WishlistModel.create({
+          user_id,
+          items: guestItems,
+          guest_merge_token: merge_token,
+        });
+        return res.send({
+          flag: 1,
+          msg: "Guest wishlist merged successfully",
+          wishlist: await populateWishlist(created),
+        });
+      } catch (error) {
+        // A concurrent request created the unique user wishlist. Continue guarded.
+        if (error?.code !== 11000) throw error;
+        existingWishlist = await WishlistModel.findOne({ user_id });
+      }
+    }
 
-    const wishlist = await WishlistModel.findOneAndUpdate(
-      { user_id },
-      { items: mergedItems },
-      { upsert: true, new: true }
-    ).populate("items.product_id");
+    const mergedItems = normalizeItems([...existingWishlist.items, ...guestItems]);
+    const wishlist = await populateWishlist(WishlistModel.findOneAndUpdate(
+      { _id: existingWishlist._id, guest_merge_token: { $ne: merge_token } },
+      { $set: { items: mergedItems, guest_merge_token: merge_token } },
+      { new: true, runValidators: true }
+    ));
 
-    res.send({ flag: 1, wishlist });
-  } catch (err) {
-    console.error(err);
-    res.send({ flag: 0, msg: "Wishlist merge failed" });
+    return res.send({
+      flag: 1,
+      msg: "Guest wishlist merged successfully",
+      wishlist: wishlist || await fetchWishlist(user_id),
+    });
+  } catch (error) {
+    console.error("Guest wishlist merge failed", error);
+    return res.send({ flag: 0, msg: "Wishlist merge failed" });
   }
 };
 
+// The only endpoint used to persist authenticated Redux changes, including clear.
 exports.updateWishlist = async (req, res) => {
   try {
     const { user_id, items } = req.body;
+    if (!user_id) return res.send({ flag: 0, msg: "user_id required" });
 
-    if (!user_id) {
-      return res.send({ flag: 0, msg: "user_id required" });
-    }
-
-    // 🛑 HARD BLOCK — NEVER ALLOW EMPTY OVERWRITE
-    if (!Array.isArray(items) || items.length === 0) {
-      const existing = await WishlistModel.findOne({ user_id });
-      return res.send({
-        flag: 1,
-        msg: "Empty update ignored",
-        wishlist: existing || { items: [] },
-      });
-    }
-
-    const normalizedItems = Array.isArray(items)
-  ? items.map((item) => ({
-      product_id: item.product_id || item.id,
-    }))
-  : [];
-
-const wishlist = await WishlistModel.findOneAndUpdate(
-  { user_id },
-  { items: normalizedItems },
-  { upsert: true, new: true }
-).populate("items.product_id");
-
-return res.send({ flag: 1, wishlist });
-
-  } catch (err) {
-    console.error(err);
-    res.send({ flag: 0, msg: "Wishlist update failed" });
-  }
-};
-
-
-
-
-exports.syncWishlist = async (req, res) => {
-  console.log("🔥 SYNC WISHLIST CALLED", req.body.items);
-    console.log("🚨 HIT /wishlist/sync ROUTE");
-
-  try {
-    const user_id = req.user?._id || req.body.user_id;
-    const items = req.body.items;
-
-    if (!user_id) {
-      return res.send({ flag: 0, msg: "user_id required" });
-    }
-
-    // 🔐 BLOCK EMPTY SYNC
-    if (!Array.isArray(items) || items.length === 0) {
-      const existing = await WishlistModel.findOne({ user_id }).populate(
-        "items.product_id"
-      );
-
-      return res.send({
-        flag: 1,
-        wishlist: existing || { items: [] },
-      });
-    }
-
-    const uniqueMap = new Map();
-
-    items.forEach((item) => {
-      const key = String(item.product_id || item.id);
-      uniqueMap.set(key, { product_id: key });
-    });
-
-    const normalizedItems = Array.from(uniqueMap.values());
-
-    const wishlist = await WishlistModel.findOneAndUpdate(
+    const wishlist = await populateWishlist(WishlistModel.findOneAndUpdate(
       { user_id },
-      { items: normalizedItems },
-      { upsert: true, new: true }
-    ).populate("items.product_id");
+      { $set: { items: normalizeItems(items) } },
+      { upsert: true, new: true, runValidators: true }
+    ));
 
-    res.send({ flag: 1, wishlist });
-  } catch (err) {
-    console.error(err);
-    res.send({ flag: 0, msg: "Wishlist sync failed" });
+    return res.send({ flag: 1, msg: "Wishlist updated", wishlist });
+  } catch (error) {
+    console.error("Wishlist update failed", error);
+    return res.send({ flag: 0, msg: "Wishlist update failed" });
   }
 };
 
-// CLEAR WISHLIST — EXPLICIT
+// Kept as a compatibility endpoint; all client writes use /wishlist/update.
 exports.clearWishlist = async (req, res) => {
-  try {
-    const { user_id } = req.body;
-
-    if (!user_id) {
-      return res.send({ flag: 0, msg: "user_id required" });
-    }
-
-    const wishlist = await WishlistModel.findOneAndUpdate(
-      { user_id },
-      { items: [] },
-      { new: true }
-    );
-
-    res.send({ flag: 1, wishlist });
-  } catch (err) {
-    console.error(err);
-    res.send({ flag: 0, msg: "Clear wishlist failed" });
-  }
+  req.body.items = [];
+  return exports.updateWishlist(req, res);
 };

@@ -8,6 +8,11 @@ const WishlistSchema = new mongoose.Schema(
       required: true,
       unique: true,
     },
+    // Makes a retried guest merge idempotent after a successful response.
+    guest_merge_token: {
+      type: String,
+      default: null,
+    },
     items: [
       {
         product_id: {

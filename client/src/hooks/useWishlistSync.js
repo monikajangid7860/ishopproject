@@ -1,40 +1,150 @@
+"use client";
+
 import { useEffect, useRef } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { axiosApiInstance } from "@/helper/helper";
+import { loadWish } from "@/redux/reducer/WishReducer";
 
+const WISHLIST_KEY = "wish";
+const MERGE_TOKEN_KEY = "wishlist_guest_merge_token";
+
+function readGuestWishlist() {
+  try {
+    const wishlist = JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]");
+    return Array.isArray(wishlist) ? wishlist : [];
+  } catch {
+    return [];
+  }
+}
+
+function normalizeServerWishlist(items = []) {
+  return items
+    .filter((row) => row?.product_id)
+    .map((row) => ({
+      id: row.product_id?._id || row.product_id,
+      title: row.product_id?.name || row.title,
+      image: row.product_id?.thumbnail || row.image,
+      price: Number(row.product_id?.final_price ?? row.price),
+    }));
+}
+
+function signature(items) {
+  return JSON.stringify(
+    items
+      .map((item) => String(item.id || item._id))
+      .sort()
+  );
+}
+
+function createMergeToken() {
+  return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+}
+
+// The sole owner of wishlist initialization, guest merge, and DB synchronization.
 export default function useWishlistSync() {
-  const { items, hydrated } = useSelector((state) => state.wish);
-  const user = useSelector((state) => state.user.user);
-
-  const didInitialSync = useRef(false);
-  const debounceRef = useRef(null);
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user?.user);
+  const items = useSelector((state) => state.wish?.items || []);
+  const lifecycleRef = useRef({ userId: null, ready: false, initialGuestLoaded: false });
+  const currentUserIdRef = useRef(null);
+  const lastSyncedRef = useRef("");
+  const queueRef = useRef(Promise.resolve());
+  const guestPersistenceRef = useRef(true);
 
   useEffect(() => {
-    /* ---------------- GUEST ---------------- */
-    if (!user) {
-      localStorage.setItem("wish", JSON.stringify(items));
+    currentUserIdRef.current = user?._id || null;
+  }, [user?._id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const userId = user?._id || null;
+    const lifecycle = lifecycleRef.current;
+
+    async function initialize() {
+      lifecycle.ready = false;
+      lifecycle.userId = userId;
+
+      if (!userId) {
+        if (!lifecycle.initialGuestLoaded) {
+          lifecycle.initialGuestLoaded = true;
+          const guestWishlist = readGuestWishlist();
+          lastSyncedRef.current = signature(guestWishlist);
+          if (!cancelled) dispatch(loadWish(guestWishlist));
+        }
+        lifecycle.ready = true;
+        return;
+      }
+
+      // Logout clears Redux only. Do not recreate or overwrite guest storage
+      // until the guest intentionally adds a new wishlist item.
+      guestPersistenceRef.current = false;
+
+      try {
+        const guestWishlist = readGuestWishlist();
+        if (guestWishlist.length) {
+          const mergeToken = localStorage.getItem(MERGE_TOKEN_KEY) || createMergeToken();
+          localStorage.setItem(MERGE_TOKEN_KEY, mergeToken);
+          await axiosApiInstance.post("/wishlist/merge", {
+            user_id: userId,
+            items: guestWishlist,
+            merge_token: mergeToken,
+          });
+          localStorage.removeItem(WISHLIST_KEY);
+          localStorage.removeItem(MERGE_TOKEN_KEY);
+        }
+
+        const response = await axiosApiInstance.get(`/wishlist/${userId}`);
+        const dbWishlist = normalizeServerWishlist(response.data?.wishlist?.items || []);
+        if (cancelled || currentUserIdRef.current !== userId) return;
+
+        lastSyncedRef.current = signature(dbWishlist);
+        dispatch(loadWish(dbWishlist));
+        lifecycle.ready = true;
+      } catch (error) {
+        console.error("Wishlist initialization failed", error);
+        // Guest storage remains intact so the next login can retry safely.
+      }
+    }
+
+    initialize();
+    return () => { cancelled = true; };
+  }, [user?._id, dispatch]);
+
+  useEffect(() => {
+    const lifecycle = lifecycleRef.current;
+    const userId = user?._id || null;
+    const wishlistSignature = signature(items);
+
+    if (!lifecycle.ready || lifecycle.userId !== userId) return;
+
+    if (!userId) {
+      if (!guestPersistenceRef.current && items.length === 0) return;
+      guestPersistenceRef.current = true;
+      localStorage.setItem(WISHLIST_KEY, JSON.stringify(items));
       return;
     }
 
-    /* ❌ BLOCK UNTIL HYDRATED */
-    if (!hydrated) return;
+    if (wishlistSignature === lastSyncedRef.current) return;
+    lastSyncedRef.current = wishlistSignature;
+    const payload = items.map((item) => ({ product_id: item.id || item._id }));
 
-    /* ❌ BLOCK FIRST RUN AFTER LOGIN */
-    if (!didInitialSync.current) {
-      didInitialSync.current = true;
-      return;
-    }
+    queueRef.current = queueRef.current
+      .then(async () => {
+        if (currentUserIdRef.current !== userId) return;
+        const response = await axiosApiInstance.post("/wishlist/update", {
+          user_id: userId,
+          items: payload,
+        });
+        if (currentUserIdRef.current !== userId) return;
 
-    /* ---------------- LOGGED IN ---------------- */
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-
-    debounceRef.current = setTimeout(() => {
-      axiosApiInstance.post("/wishlist/update", {
-        user_id: user._id,
-        items: items.map((i) => ({ product_id: i.id })),
+        const serverWishlist = normalizeServerWishlist(response.data?.wishlist?.items || []);
+        if (signature(serverWishlist) === wishlistSignature) return;
+        lastSyncedRef.current = signature(serverWishlist);
+        dispatch(loadWish(serverWishlist));
+      })
+      .catch((error) => {
+        console.error("Wishlist sync failed", error);
+        if (lastSyncedRef.current === wishlistSignature) lastSyncedRef.current = "";
       });
-    }, 400);
-
-    return () => clearTimeout(debounceRef.current);
-  }, [items, user, hydrated]);
+  }, [items, user?._id, dispatch]);
 }
