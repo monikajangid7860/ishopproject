@@ -1,150 +1,150 @@
 "use client";
 
-import Link from "next/link";
-import useRecentlyViewedProducts from "@/hooks/useRecentlyViewedProducts";
-import { getThumbnail } from "@/helper/getProductImage";
-import { ArrowRight } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { axiosApiInstance } from "@/helper/helper";
+import { loadCart } from "@/redux/reducer/CartReducer";
 
-export default function RecentlyViewed() {
-  const { products, loading } = useRecentlyViewedProducts();
+const CART_KEY = "cart";
+const MERGE_TOKEN_KEY = "cart_guest_merge_token";
 
-  if (loading || !products.length) return null;
+function readGuestCart() {
+  try {
+    const cart = JSON.parse(localStorage.getItem(CART_KEY) || "[]");
+    return Array.isArray(cart) ? cart : [];
+  } catch {
+    return [];
+  }
+}
 
-  return (
-    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+function normalizeServerCart(items = []) {
+  return items.map((row) => ({
+    id: row.product_id?._id || row.product_id,
+    title: row.product_id?.name || row.title,
+    image: row.product_id?.thumbnail || row.image,
+    price: Number(row.product_id?.final_price ?? row.price ?? row.final_price),
+    final_price: Number(row.product_id?.final_price ?? row.final_price),
+    original_price: Number(row.product_id?.original_price ?? row.original_price),
+    quantity: Number(row.quantity || 1),
+  }));
+}
 
-      {/* Header */}
-      <div className="flex items-end justify-between mb-8">
-        <div>
-          <p className="text-xs uppercase tracking-[0.25em] text-gray-500 font-medium">
-            Continue Shopping
-          </p>
-
-          <h2 className="mt-2 text-2xl font-bold tracking-tight text-gray-900">
-            Recently Viewed
-          </h2>
-        </div>
-
-        <Link
-          href="/products"
-          className="group flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-black transition-colors"
-        >
-          View All
-          <ArrowRight
-            size={16}
-            className="transition-transform group-hover:translate-x-1"
-          />
-        </Link>
-      </div>
-
-      {/* Cards */}
-      <div className="flex gap-5 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory">
-
-        {products.map((product) => (
-          <Link
-            href={`/product/${product._id}`}
-            key={product._id}
-            className="group shrink-0 snap-start"
-          >
-            <article
-              className="
-              w-[290px]
-              rounded-3xl
-              border
-              border-gray-200
-              bg-white
-              p-5
-              transition-all
-              duration-300
-              hover:-translate-y-1
-              hover:shadow-xl
-              hover:border-gray-300
-            "
-            >
-
-              {/* Image */}
-              <div
-                className="
-                h-40
-                rounded-2xl
-                bg-gray-50
-                flex
-                items-center
-                justify-center
-                overflow-hidden
-              "
-              >
-                <img
-                  src={getThumbnail(
-                    product,
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/images/product/`
-                  )}
-                  alt={product.name}
-                  className="
-                    h-32
-                    object-contain
-                    transition-transform
-                    duration-500
-                    group-hover:scale-105
-                  "
-                />
-              </div>
-
-              {/* Content */}
-              <div className="mt-5">
-
-                <h3
-                  className="
-                  text-[15px]
-                  font-semibold
-                  leading-6
-                  text-gray-900
-                  line-clamp-2
-                  min-h-[48px]
-                "
-                >
-                  {product.name}
-                </h3>
-
-                <p className="mt-4 text-2xl font-bold text-gray-900">
-                  ₹{product.final_price}
-                </p>
-
-                <div
-                  className="
-                  mt-5
-                  inline-flex
-                  items-center
-                  gap-2
-                  rounded-full
-                  border
-                  border-gray-300
-                  px-4
-                  py-2
-                  text-sm
-                  font-medium
-                  transition-all
-                  group-hover:bg-black
-                  group-hover:text-white
-                  group-hover:border-black
-                "
-                >
-                  View Product
-
-                  <ArrowRight
-                    size={15}
-                    className="transition-transform group-hover:translate-x-1"
-                  />
-                </div>
-
-              </div>
-
-            </article>
-          </Link>
-        ))}
-
-      </div>
-
-    </section>
+function signature(items) {
+  return JSON.stringify(
+    items
+      .map((item) => ({ id: String(item.id || item._id), quantity: Number(item.quantity || 1) }))
+      .sort((a, b) => a.id.localeCompare(b.id))
   );
+}
+
+function createMergeToken() {
+  return globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+}
+
+export default function useCartSync() {
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.user?.user);
+  const cart = useSelector((state) => state.cart?.items || []);
+  const lifecycleRef = useRef({ userId: null, ready: false, initialGuestLoaded: false });
+  const currentUserIdRef = useRef(null);
+  const lastSyncedRef = useRef("");
+  const queueRef = useRef(Promise.resolve());
+  const guestPersistenceRef = useRef(true);
+
+  useEffect(() => {
+    currentUserIdRef.current = user?._id || null;
+  }, [user?._id]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const userId = user?._id || null;
+    const lifecycle = lifecycleRef.current;
+
+    async function initialize() {
+      lifecycle.ready = false;
+      lifecycle.userId = userId;
+
+      if (!userId) {
+        if (!lifecycle.initialGuestLoaded) {
+          lifecycle.initialGuestLoaded = true;
+          const guestCart = readGuestCart();
+          lastSyncedRef.current = signature(guestCart);
+          if (!cancelled) dispatch(loadCart(guestCart));
+        }
+        lifecycle.ready = true;
+        return;
+      }
+
+      // A logout clears Redux. Do not recreate or overwrite guest storage until
+      // the guest intentionally adds a new item.
+      guestPersistenceRef.current = false;
+
+      try {
+        const guestCart = readGuestCart();
+        if (guestCart.length) {
+          const mergeToken = localStorage.getItem(MERGE_TOKEN_KEY) || createMergeToken();
+          localStorage.setItem(MERGE_TOKEN_KEY, mergeToken);
+          await axiosApiInstance.post("/cart/sync-cart", {
+            user_id: userId,
+            cart_data: guestCart,
+            source: "guest",
+            merge_token: mergeToken,
+          });
+          localStorage.removeItem(CART_KEY);
+          localStorage.removeItem(MERGE_TOKEN_KEY);
+        }
+
+        const response = await axiosApiInstance.get(`/cart/${userId}`);
+        const dbCart = normalizeServerCart(response.data?.cart?.items || []);
+        if (cancelled || currentUserIdRef.current !== userId) return;
+
+        lastSyncedRef.current = signature(dbCart);
+        dispatch(loadCart(dbCart));
+        lifecycle.ready = true;
+      } catch (error) {
+        console.error("Cart initialization failed", error);
+      }
+    }
+
+    initialize();
+    return () => { cancelled = true; };
+  }, [user?._id, dispatch]);
+
+  useEffect(() => {
+    const lifecycle = lifecycleRef.current;
+    const userId = user?._id || null;
+    const cartSignature = signature(cart);
+
+    if (!lifecycle.ready || lifecycle.userId !== userId) return;
+
+    if (!userId) {
+      if (!guestPersistenceRef.current && cart.length === 0) return;
+      guestPersistenceRef.current = true;
+      localStorage.setItem(CART_KEY, JSON.stringify(cart));
+      return;
+    }
+
+    if (cartSignature === lastSyncedRef.current) return;
+    lastSyncedRef.current = cartSignature;
+    const payload = cart.map((item) => ({
+      product_id: item.id || item._id,
+      quantity: Number(item.quantity || 1),
+      price_snapshot: item.price ?? item.final_price ?? null,
+    }));
+
+    queueRef.current = queueRef.current
+      .then(async () => {
+        if (currentUserIdRef.current !== userId) return;
+        const response = await axiosApiInstance.post("/cart/update", { user_id: userId, items: payload });
+        if (currentUserIdRef.current !== userId) return;
+        const serverCart = normalizeServerCart(response.data?.cart?.items || []);
+        if (signature(serverCart) === cartSignature) return;
+        lastSyncedRef.current = signature(serverCart);
+        dispatch(loadCart(serverCart));
+      })
+      .catch((error) => {
+        console.error("Cart sync failed", error);
+        if (lastSyncedRef.current === cartSignature) lastSyncedRef.current = "";
+      });
+  }, [cart, user?._id, dispatch]);
 }

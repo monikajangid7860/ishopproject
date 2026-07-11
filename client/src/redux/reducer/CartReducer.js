@@ -4,20 +4,13 @@ const initialState = {
   items: [],
 };
 
-const saveToLocalStorage = (items) => {
-  if (typeof window === "undefined") return;
-  localStorage.setItem("cart", JSON.stringify(items));
-};
-
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
     /* LOAD CART (FROM DB OR LS) */
-    loadCart: (state, { payload }) => {console.log(payload);
-
+    loadCart: (state, { payload }) => {
       state.items = Array.isArray(payload) ? payload : [];
-      saveToLocalStorage(state.items);
     },
 
     /* ADD / INCREMENT */
@@ -41,7 +34,6 @@ const cartSlice = createSlice({
         });
       }
 
-      saveToLocalStorage(state.items);
     },
 
     /* DECREMENT / REMOVE */
@@ -58,7 +50,6 @@ const cartSlice = createSlice({
         state.items = state.items.filter((i) => i.id !== id);
       }
 
-      saveToLocalStorage(state.items);
     },
 
     /* DELETE ITEM */
@@ -70,15 +61,11 @@ const cartSlice = createSlice({
         (item) => item.id !== id
       );
 
-      saveToLocalStorage(state.items);
     },
 
     /* CLEAR CART */
     clearCart: (state) => {
       state.items = [];
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("cart");
-      }
     },
   },
 });

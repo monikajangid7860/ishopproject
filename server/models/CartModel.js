@@ -8,6 +8,11 @@ const CartSchema = new mongoose.Schema(
       required: true,
       unique: true, // 🔥 one cart per user
     },
+    // Makes a guest-cart merge idempotent when a successful response is retried.
+    guest_merge_token: {
+      type: String,
+      default: null,
+    },
     items: [
       {
         product_id: {

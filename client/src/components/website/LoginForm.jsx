@@ -32,19 +32,6 @@ export default function LoginForm() {
         // ✅ SAVE USER IN REDUX (SESSION AUTH)
         dispatch(setUser(user));
 
-        /* ================= CART MERGE ================= */
-        // const guestCart =
-        //   JSON.parse(localStorage.getItem("cart")) || [];
-
-        // if (guestCart.length > 0) {
-        //   await axiosApiInstance.post("/cart/sync-cart", {
-        //     cart_data: guestCart,
-        //     source: "guest",
-        //   });
-
-        //   localStorage.removeItem("cart");
-        // }
-
         /* ================= WISHLIST MERGE ================= */
         const guestWish =
           JSON.parse(localStorage.getItem("wish")) || [];

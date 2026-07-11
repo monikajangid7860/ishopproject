@@ -18,8 +18,6 @@ import useWishlistSync from "@/hooks/useWishlistSync";
 import { loadUserFromLS } from "@/redux/reducer/UserReducer";
 import { loadWish } from "@/redux/reducer/WishReducer";
 import { handleLogout } from "@/redux/reducer/handleLogout";
-import { loadCart } from "@/redux/reducer/CartReducer";
-import useCartSync from "@/hooks/userCartSync";
 import { axiosApiInstance } from "@/helper/helper";
 import { useRouter } from "next/navigation";
 import { getCategories } from "@/api-calls/category";
@@ -29,8 +27,6 @@ import { getBrands } from "@/api-calls/brand";
 
 
 export default function Header() {
-  /* ---------------- CART LOCAL STORAGE SYNC (GUEST MODE) ---------------- */
-  useCartSync();
   useWishlistSync();
 
   /* ---------------- REDUX ---------------- */
@@ -172,87 +168,6 @@ dispatch(loadWish(normalizedItems));
   };
 }, [user, wishlistReady, dispatch]);
 
-
-  /* ---------------- FETCH CART ---------------- */
-//   useEffect(() => {
-//     if (!user) return;
-
-//     async function fetchCart() {
-//       try {
-//         const res = await axiosApiInstance.get(`/cart/${user._id}`);
-
-// const normalizedCart =
-//   res.data?.cart?.items?.map((row) => ({
-//     id: row.product_id._id,
-//     title: row.product_id.name,
-//     image: row.product_id.thumbnail,
-//     price: Number(row.product_id.final_price),
-//     quantity: row.quantity,
-//   })) || [];
-
-// dispatch(loadCart(normalizedCart));
-//       } catch (error) {
-//         console.error("Fetch cart failed", error);
-//       }
-//     }
-
-//     fetchCart();
-//   }, [user, dispatch]);
-
-  /* ---------------- CART SYNC ---------------- */
-  const cartSyncedRef = useRef(false);
-
-  useEffect(() => {
-  if (!user?._id) return;
-  if (cartSyncedRef.current) return;
-
-  cartSyncedRef.current = true;
-
-  async function initializeCart() {
-    try {
-      // Read guest cart directly from localStorage
-      const guestCart = JSON.parse(localStorage.getItem("cart") || "[]");
-console.log("===== GUEST CART =====");
-console.log(guestCart);
-      // Merge only if guest cart exists
-    if (guestCart.length > 0) {
-  const mergeRes = await axiosApiInstance.post("/cart/sync-cart", {
-    user_id: user._id,
-    cart_data: guestCart,
-    source: "guest",
-  });
-
-  console.log("===== MERGE RESPONSE =====");
-  console.log(mergeRes.data);
-} else {
-  console.log("NO GUEST CART TO MERGE");
-}
-      // Always fetch the latest merged cart
-      const res = await axiosApiInstance.get(`/cart/${user._id}`);
-console.log("===== DB CART AFTER MERGE =====");
-console.log(res.data.cart);
-      const normalizedCart =
-        res.data?.cart?.items?.map((row) => ({
-          id: row.product_id._id,
-          title: row.product_id.name,
-          image: row.product_id.thumbnail,
-          price: Number(row.product_id.final_price),
-          final_price: Number(row.product_id.final_price),
-          original_price: Number(row.product_id.original_price),
-          quantity: row.quantity,
-        })) || [];
-
-      dispatch(loadCart(normalizedCart));
-
-      // Guest cart no longer needed
-      localStorage.removeItem("cart");
-    } catch (err) {
-      console.error("Cart initialization failed", err);
-    }
-  }
-
-  initializeCart();
-}, [user, dispatch]);
 
   /* ---------------- WISHLIST SYNC ---------------- */
   useEffect(() => {

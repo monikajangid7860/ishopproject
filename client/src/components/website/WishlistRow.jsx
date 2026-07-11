@@ -10,7 +10,6 @@ export default function WishlistRow({ item }) {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.user.user);
   const wish = useSelector((state) => state.wish.items);
-  const cartItems = useSelector((state) => state.cart.items);
 
   // Defensive image normalization (UNCHANGED)
 const imageSrc =item.image || "/placeholder.png";
@@ -65,19 +64,6 @@ const handleMoveToCart = async () => {
   await syncWishlistToDB(updatedWishlist);
 
   // 3️⃣ Sync cart to DB
-  const updatedCart = [...cartItems, cartItem];
-
-  try {
-    await axiosApiInstance.post("/cart/sync-cart", {
-      user_id: user._id,
-      items: updatedCart.map((i) => ({
-        product_id: i.id,
-        quantity: i.quantity,
-      })),
-    });
-  } catch (err) {
-    console.error("Cart sync failed", err);
-  }
 };
   /* ===============================
      UI BELOW — 100% YOUR CODE

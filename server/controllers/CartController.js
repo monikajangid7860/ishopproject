@@ -1,193 +1,115 @@
 const messages = require("../message");
 const CartModel = require("../models/CartModel");
 
-/* ---------------------------------------
-   NORMALIZE LOCAL CART (GUEST)
----------------------------------------- */
-function normalizeLocalCart(items = []) {
-  return items.map((item) => ({
-    product_id: String(item.product_id || item.id),
-    quantity: Number(item.quantity || item.qty || 1),
-    price_snapshot: item.price_snapshot || item.final_price || null,
-  }));
-}
+const populateCart = (query) => query.populate(
+  "items.product_id",
+  "name final_price original_price thumbnail"
+);
 
-/* ---------------------------------------
-   MERGE CART ITEMS (SAFE)
----------------------------------------- */
-function getProductId(item) {
-  return String(item.product_id?._id || item.product_id);
-}
+function normalizeItems(items = []) {
+  const merged = new Map();
 
-function mergeCartItems(dbItems = [], localItems = []) {
-  const map = new Map();
+  for (const item of Array.isArray(items) ? items : []) {
+    const productId = item?.product_id?._id || item?.product_id || item?.id || item?._id;
+    if (!productId) continue;
 
-  // DB cart first
-  for (const item of dbItems) {
-    const key = getProductId(item);
-    map.set(key, {
-      product_id: item.product_id?._id || item.product_id,
-      quantity: item.quantity,
-      price_snapshot: item.price_snapshot,
+    const key = String(productId);
+    const quantity = Math.max(1, Number(item.quantity || item.qty || 1));
+    const existing = merged.get(key);
+    merged.set(key, {
+      product_id: productId,
+      quantity: existing ? existing.quantity + quantity : quantity,
+      price_snapshot: item.price_snapshot ?? item.price ?? item.final_price ?? null,
     });
   }
 
-  // Guest cart
-  for (const item of localItems) {
-    const key = String(item.product_id);
-    if (map.has(key)) {
-      map.get(key).quantity += item.quantity;
-    } else {
-      map.set(key, {
-        product_id: item.product_id,
-        quantity: item.quantity,
-        price_snapshot: item.price_snapshot,
-      });
-    }
-  }
-
-  return Array.from(map.values());
+  return [...merged.values()];
 }
 
-/* ---------------------------------------
-   SYNC CART (ONLY ON LOGIN)
----------------------------------------- */
+function mergeItems(dbItems = [], guestItems = []) {
+  return normalizeItems([...dbItems, ...guestItems]);
+}
+
+async function fetchCart(userId) {
+  return populateCart(CartModel.findOne({ user_id: userId }));
+}
+
+// The only endpoint that merges guest storage into an authenticated cart.
 const syncCart = async (req, res) => {
   try {
-    const { user_id, cart_data, source } = req.body;
-
-    if (!user_id) {
-      return res.send({ flag: 0, msg: "user_id is required" });
+    const { user_id, cart_data, source, merge_token } = req.body;
+    if (!user_id || source !== "guest" || !merge_token) {
+      return res.send({ flag: 0, msg: "user_id, guest source, and merge_token are required" });
     }
 
-    const existingCart = await CartModel.findOne({ user_id });
+    const guestItems = normalizeItems(cart_data);
+    let existingCart = await CartModel.findOne({ user_id });
 
-    if (source !== "guest") {
-      return res.send({
-        flag: 1,
-        msg: "Merge skipped",
-        cart: existingCart || { items: [] },
-      });
+    if (existingCart?.guest_merge_token === merge_token) {
+      return res.send({ flag: 1, msg: "Guest cart already merged", cart: await fetchCart(user_id) });
     }
 
-    const localCart = normalizeLocalCart(cart_data || []);
-
-    console.log("===== EXISTING DB ITEMS =====");
-    console.log(existingCart?.items);
-
-    console.log("===== LOCAL ITEMS =====");
-    console.log(localCart);
-
-    const mergedItems = mergeCartItems(
-      existingCart?.items || [],
-      localCart
-    );
-
-    console.log("===== MERGED ITEMS =====");
-    console.log(mergedItems);
-
-    const updatedCart = await CartModel.findOneAndUpdate(
-      { user_id },
-      { items: mergedItems },
-      {
-        upsert: true,
-        new: true,
+    if (!existingCart) {
+      try {
+        const created = await CartModel.create({
+          user_id,
+          items: guestItems,
+          guest_merge_token: merge_token,
+        });
+        return res.send({ flag: 1, msg: "Guest cart merged successfully", cart: await populateCart(created) });
+      } catch (error) {
+        // A concurrent request created the single user cart. Continue through the guarded update.
+        if (error?.code !== 11000) throw error;
+        existingCart = await CartModel.findOne({ user_id });
       }
-    ).populate(
-      "items.product_id",
-      "name final_price original_price thumbnail"
-    );
+    }
 
-    console.log("===== UPDATED CART =====");
-    console.log(updatedCart.items);
+    const mergedItems = mergeItems(existingCart.items, guestItems);
+    const updatedCart = await populateCart(CartModel.findOneAndUpdate(
+      { _id: existingCart._id, guest_merge_token: { $ne: merge_token } },
+      { $set: { items: mergedItems, guest_merge_token: merge_token } },
+      { new: true, runValidators: true }
+    ));
 
-    res.send({
+    // If another identical request won the update, return its authoritative cart.
+    return res.send({
       flag: 1,
       msg: "Guest cart merged successfully",
-      cart: updatedCart,
+      cart: updatedCart || await fetchCart(user_id),
     });
-
   } catch (error) {
-    console.error(error);
-    res.send(messages.catch_error);
+    console.error("Guest cart merge failed", error);
+    return res.send(messages.catch_error);
   }
 };
-  
-// const updateCart = async (req, res) => {
-//   try {
-//     const { user_id, items } = req.body;
 
-//     if (!user_id) {
-//       return res.send({ flag: 0, msg: "user_id required" });
-//     }
-
-//     await CartModel.findOneAndUpdate(
-//       { user_id },
-//       { items },
-//       { upsert: true }
-//     );
-
-//     res.send({
-//       flag: 1,
-//       msg: "Cart updated",
-//     });
-//   } catch (err) {
-//     console.error("Update cart error", err);
-//     res.send(messages.catch_error);
-//   }
-// };
-
+// The only endpoint used to persist authenticated Redux changes.
 const updateCart = async (req, res) => {
   try {
     const { user_id, items } = req.body;
+    if (!user_id) return res.send({ flag: 0, msg: "user_id is required" });
 
-    console.log("========== UPDATE CART ==========");
-    console.log("USER:", user_id);
-    console.log("ITEMS:", JSON.stringify(items, null, 2));
-
-    await CartModel.findOneAndUpdate(
+    const cart = await populateCart(CartModel.findOneAndUpdate(
       { user_id },
-      { items },
-      { upsert: true }
-    );
+      { $set: { items: normalizeItems(items) } },
+      { upsert: true, new: true, runValidators: true }
+    ));
 
-    res.send({
-      flag: 1,
-      msg: "Cart updated",
-    });
-  } catch (err) {
-    console.error(err);
+    return res.send({ flag: 1, msg: "Cart updated", cart });
+  } catch (error) {
+    console.error("Cart update failed", error);
+    return res.send(messages.catch_error);
   }
 };
-/* ---------------------------------------
-   GET CART (REFRESH / PAGE LOAD)
----------------------------------------- */
+
 const getCart = async (req, res) => {
   try {
-    const userId = req.params.id;
-    console.log(userId)
-
-    if (!userId) {
-      return res.send({ flag: 1, cart: { items: [] } });
-    }
-
-    const cart = await CartModel.findOne({ user_id: userId }).populate(
-      "items.product_id",
-      "name final_price original_price thumbnail"
-    );
-
-    res.send({
-      flag: 1,
-      cart: cart || { items: [] },
-    });
+    const cart = await fetchCart(req.params.id);
+    return res.send({ flag: 1, cart: cart || { items: [] } });
   } catch (error) {
-    console.error("Get cart error:", error);
-    res.send(messages.catch_error);
+    console.error("Get cart error", error);
+    return res.send(messages.catch_error);
   }
 };
 
-module.exports = {
-  syncCart,
-  getCart,
-  updateCart,
-};
+module.exports = { syncCart, getCart, updateCart };
