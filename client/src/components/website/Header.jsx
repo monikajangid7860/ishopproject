@@ -215,13 +215,18 @@ dispatch(loadWish(normalizedItems));
 console.log("===== GUEST CART =====");
 console.log(guestCart);
       // Merge only if guest cart exists
-      if (guestCart.length > 0) {
-        await axiosApiInstance.post("/cart/sync-cart", {
-          user_id: user._id,
-          cart_data: guestCart,
-          source: "guest",
-        });
-      }
+      let mergeRes = null;
+
+if (guestCart.length > 0) {
+  mergeRes = await axiosApiInstance.post("/cart/sync-cart", {
+    user_id: user._id,
+    cart_data: guestCart,
+    source: "guest",
+  });
+
+  console.log("===== MERGE RESPONSE =====");
+  console.log(mergeRes.data);
+}
   console.log("===== MERGE RESPONSE =====");
   console.log(mergeRes.data);
 
