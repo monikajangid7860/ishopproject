@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ChevronRight,LogIn } from "lucide-react";
+import { ChevronRight,LogIn,UserPlus } from "lucide-react";
 import Link from "next/link";
 import {
   Menu,
