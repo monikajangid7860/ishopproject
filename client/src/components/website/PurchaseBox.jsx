@@ -36,7 +36,7 @@ export default function PurchaseBox({ product }) {
 
           <div>
             <div className="flex flex-wrap items-end gap-2">
-              <p className="text-3xl font-bold text-slate-900">
+              <p className="text-xl font-bold text-slate-900">
                 ₹{subtotal}
               </p>
 
