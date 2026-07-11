@@ -21,31 +21,55 @@ export default function PurchaseBox({ product }) {
     return (price * qty).toFixed(2);
   }, [price, qty]);
 
+  const savings = useMemo(() => {
+    if (!product.original_price) return 0;
+    return ((product.original_price - price) * qty).toFixed(2);
+  }, [product.original_price, price, qty]);
+
   return (
     <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 
       {/* Header */}
       <div className="border-b border-slate-100 p-6">
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between gap-3">
 
           <div>
-            <p className="text-3xl font-bold text-slate-900">
-              ₹{subtotal}
-            </p>
+            <div className="flex flex-wrap items-end gap-2">
+              <p className="text-3xl font-bold text-slate-900">
+                ₹{subtotal}
+              </p>
+
+              {product.original_price && (
+                <p className="pb-1 text-sm text-slate-400 line-through">
+                  ₹{(product.original_price * qty).toFixed(2)}
+                </p>
+              )}
+            </div>
 
             <p className="mt-1 text-sm text-slate-500">
               Inclusive of all taxes
             </p>
+
+            {savings > 0 && (
+              <p className="mt-1 text-xs font-semibold text-[#01A49E]">
+                You save ₹{savings}
+              </p>
+            )}
           </div>
 
           <span
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${
               inStock
                 ? "bg-emerald-50 text-emerald-700"
                 : "bg-red-50 text-red-600"
             }`}
           >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                inStock ? "bg-emerald-500" : "bg-red-500"
+              }`}
+            />
             {inStock ? "In Stock" : "Out of Stock"}
           </span>
 
@@ -69,12 +93,18 @@ export default function PurchaseBox({ product }) {
               onClick={() =>
                 setQty((q) => Math.max(1, q - 1))
               }
-              className="flex h-11 w-11 items-center justify-center rounded-xl transition hover:bg-white"
+              disabled={qty <= 1}
+              aria-label="Decrease quantity"
+              className="
+                flex h-11 w-11 items-center justify-center rounded-xl
+                transition hover:bg-white
+                disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent
+              "
             >
               <Minus size={18} />
             </button>
 
-            <span className="text-lg font-semibold">
+            <span className="text-lg font-semibold tabular-nums">
               {qty}
             </span>
 
@@ -82,7 +112,13 @@ export default function PurchaseBox({ product }) {
               onClick={() =>
                 setQty((q) => Math.min(99, q + 1))
               }
-              className="flex h-11 w-11 items-center justify-center rounded-xl transition hover:bg-white"
+              disabled={qty >= 99}
+              aria-label="Increase quantity"
+              className="
+                flex h-11 w-11 items-center justify-center rounded-xl
+                transition hover:bg-white
+                disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent
+              "
             >
               <Plus size={18} />
             </button>
@@ -117,17 +153,22 @@ export default function PurchaseBox({ product }) {
           </button>
 
           <button
+            disabled={!inStock}
             className="
             flex h-14 w-full items-center justify-center gap-2
             rounded-2xl
             border
-            border-slate-200
-            bg-white
+            border-[#01A49E]/30
+            bg-[#01A49E]/5
             font-semibold
+            text-[#01A49E]
             transition-all
             duration-300
-            hover:bg-slate-50
+            hover:bg-[#01A49E]/10
             hover:border-[#01A49E]
+            active:scale-[0.98]
+            disabled:opacity-50
+            disabled:cursor-not-allowed
           "
           >
             <Zap size={19} />
