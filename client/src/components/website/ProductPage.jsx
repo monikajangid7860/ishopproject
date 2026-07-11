@@ -47,7 +47,7 @@ export default function ProductPage({ product }) {
 
             <div>
 
-              <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900 lg:text-4xl">
+              <h1 className="text-3xl font-bold leading-tight tracking-tight text-slate-900 lg:text-xl">
                 {product.title}
               </h1>
 
@@ -65,7 +65,7 @@ export default function ProductPage({ product }) {
 
               <div className="flex flex-wrap items-end gap-3">
 
-                <span className="text-4xl font-black text-slate-900">
+                <span className="text-xl font-black text-slate-900">
                   ₹{product.price}
                 </span>
 

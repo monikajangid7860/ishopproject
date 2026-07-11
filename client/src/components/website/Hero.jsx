@@ -90,7 +90,7 @@ try {
             <div className="animate-fade-in">
               <span className="inline-block bg-[#01A49E] text-white text-[10px] xs:text-xs font-bold px-3 py-1 rounded-full mb-3 shadow-lg">🔥 HOT DEALS</span>
 
-              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-4xl lg:text-5xl font-extrabold leading-tight mb-3 sm:mb-4 drop-shadow-lg">
+              <h1 className="text-2xl xs:text-3xl sm:text-xl md:text-4xl lg:text-5xl font-extrabold leading-tight mb-3 sm:mb-4 drop-shadow-lg">
                 Don't miss amazing <br className="hidden xs:block" /> grocery deals
               </h1>
             </div>
