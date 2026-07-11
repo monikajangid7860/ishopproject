@@ -1,31 +1,124 @@
 "use client";
 
-import { useState } from "react";
-import Badge from "./ProductBadge.jsx";
+import {
+  Gift,
+  BadgePercent,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 
-/**
- * Handles color swatches, memory selection and small promotions.
- * Local state only.
- */
-export default function ProductOptions({ product }) {
-  
-   // default middle option
-
+export default function ProductOptions() {
   return (
-    <div>
-      
+    <section className="space-y-5">
 
-      <div className="mt-4 p-3 rounded-md bg-[#f8fffb] border border-emerald-50 text-sm text-slate-700 flex items-start gap-3">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <rect width="24" height="24" rx="6" fill="#ecfdf5"/>
-          <path d="M8 12h8" stroke="#065f46" strokeWidth="1.5" strokeLinecap="round"/>
-          <path d="M12 8v8" stroke="#065f46" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-        <div>
-          <div className="font-medium">Bundle Deal</div>
-          <div className="text-xs text-slate-600">Buy 2 boxes get a Snack Tray — limited time</div>
-        </div>
+      {/* Section Heading */}
+
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#01A49E]">
+          Exclusive Offers
+        </p>
+
+        <h3 className="mt-2 text-xl font-bold text-slate-900">
+          Shop With Confidence
+        </h3>
       </div>
-    </div>
+
+      {/* Main Offer */}
+
+      <div className="overflow-hidden rounded-3xl border border-[#01A49E]/15 bg-gradient-to-r from-[#01A49E]/5 via-white to-[#01A49E]/10">
+
+        <div className="flex gap-4 p-6">
+
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#01A49E] text-white shadow-md">
+            <Gift size={26} />
+          </div>
+
+          <div>
+
+            <h4 className="text-lg font-bold text-slate-900">
+              Bundle Deal
+            </h4>
+
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Buy <span className="font-semibold">2 boxes</span> and get a
+              <span className="font-semibold text-[#01A49E]">
+                {" "}FREE Snack Tray
+              </span>.
+            </p>
+
+            <span className="mt-4 inline-flex rounded-full bg-[#01A49E]/10 px-4 py-1.5 text-xs font-semibold text-[#01A49E]">
+              Limited Time Offer
+            </span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* Benefits */}
+
+      <div className="grid gap-4 sm:grid-cols-3">
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#01A49E]/10">
+            <BadgePercent
+              className="text-[#01A49E]"
+              size={22}
+            />
+          </div>
+
+          <h4 className="font-semibold text-slate-900">
+            Best Pricing
+          </h4>
+
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Competitive prices with exciting seasonal offers.
+          </p>
+
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#01A49E]/10">
+            <ShieldCheck
+              className="text-[#01A49E]"
+              size={22}
+            />
+          </div>
+
+          <h4 className="font-semibold text-slate-900">
+            Genuine Product
+          </h4>
+
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Carefully sourced with reliable quality assurance.
+          </p>
+
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 transition duration-300 hover:-translate-y-1 hover:shadow-md">
+
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#01A49E]/10">
+            <Sparkles
+              className="text-[#01A49E]"
+              size={22}
+            />
+          </div>
+
+          <h4 className="font-semibold text-slate-900">
+            Premium Experience
+          </h4>
+
+          <p className="mt-2 text-sm leading-6 text-slate-500">
+            Beautiful packaging with trusted customer support.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
   );
 }

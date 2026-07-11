@@ -1,11 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import {
+  Minus,
+  Plus,
+  ShoppingCart,
+  Zap,
+  ShieldCheck,
+  Truck,
+  RotateCcw,
+} from "lucide-react";
 
-/**
- * Sticky purchase box
- * Assumes NORMALIZED product object
- */
 export default function PurchaseBox({ product }) {
   const [qty, setQty] = useState(1);
 
@@ -17,151 +22,195 @@ export default function PurchaseBox({ product }) {
   }, [price, qty]);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 space-y-4">
-      {/* PRICE SUMMARY */}
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs uppercase tracking-wide text-slate-500">
-            Total price
-          </p>
-          <p className="mt-1 text-xl font-semibold text-slate-900">
-            ₹{subtotal}
-          </p>
-          <p className="text-xs text-slate-400">
-            Incl. taxes (est.)
-          </p>
-        </div>
+    <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
 
-        <div className="text-right">
-          <p className="text-xs text-slate-500">Rating</p>
-          <p className="mt-1 text-sm font-medium text-emerald-600">
-            ★★★★★
-          </p>
-        </div>
-      </div>
+      {/* Header */}
+      <div className="border-b border-slate-100 p-6">
 
-      {/* STOCK + QTY */}
-      <div className="flex items-center justify-between gap-3">
-        <span
-          className={`text-sm font-medium ${
-            inStock ? "text-emerald-600" : "text-rose-600"
-          }`}
-        >
-          {inStock ? "In stock" : "Out of stock"}
-        </span>
+        <div className="flex items-center justify-between">
 
-        <div className="inline-flex items-center rounded-md border overflow-hidden">
-          <button
-            aria-label="Decrease quantity"
-            onClick={() => setQty((q) => Math.max(1, q - 1))}
-            className="px-3 py-2 text-sm hover:bg-slate-50"
+          <div>
+            <p className="text-3xl font-bold text-slate-900">
+              ₹{subtotal}
+            </p>
+
+            <p className="mt-1 text-sm text-slate-500">
+              Inclusive of all taxes
+            </p>
+          </div>
+
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              inStock
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-red-50 text-red-600"
+            }`}
           >
-            −
-          </button>
-
-          <span className="px-4 py-2 text-sm min-w-[2rem] text-center">
-            {qty}
+            {inStock ? "In Stock" : "Out of Stock"}
           </span>
 
-          <button
-            aria-label="Increase quantity"
-            onClick={() => setQty((q) => Math.min(99, q + 1))}
-            className="px-3 py-2 text-sm hover:bg-slate-50"
-          >
-            +
-          </button>
         </div>
+
       </div>
 
-      {/* ACTIONS */}
-      <div className="space-y-3">
-        <button
-          disabled={!inStock}
-          className="
-            w-full rounded-lg py-3
-            bg-emerald-600 text-white
-            font-medium
-            hover:bg-emerald-700
+      <div className="p-6 space-y-6">
+
+        {/* Quantity */}
+
+        <div>
+
+          <p className="mb-3 text-sm font-semibold text-slate-800">
+            Quantity
+          </p>
+
+          <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 p-1">
+
+            <button
+              onClick={() =>
+                setQty((q) => Math.max(1, q - 1))
+              }
+              className="flex h-11 w-11 items-center justify-center rounded-xl transition hover:bg-white"
+            >
+              <Minus size={18} />
+            </button>
+
+            <span className="text-lg font-semibold">
+              {qty}
+            </span>
+
+            <button
+              onClick={() =>
+                setQty((q) => Math.min(99, q + 1))
+              }
+              className="flex h-11 w-11 items-center justify-center rounded-xl transition hover:bg-white"
+            >
+              <Plus size={18} />
+            </button>
+
+          </div>
+
+        </div>
+
+        {/* Buttons */}
+
+        <div className="space-y-3">
+
+          <button
+            disabled={!inStock}
+            className="
+            flex h-14 w-full items-center justify-center gap-2
+            rounded-2xl
+            bg-[#01A49E]
+            text-white
+            font-semibold
+            transition-all
+            duration-300
+            hover:bg-[#01857F]
+            hover:shadow-lg
+            active:scale-[0.98]
             disabled:opacity-50
             disabled:cursor-not-allowed
           "
-        >
-          Add to cart
-        </button>
+          >
+            <ShoppingCart size={20} />
+            Add to Cart
+          </button>
 
-        <button
-          className="
-            w-full rounded-lg py-3
-            border border-slate-200
-            font-medium
-            flex items-center justify-center gap-2
+          <button
+            className="
+            flex h-14 w-full items-center justify-center gap-2
+            rounded-2xl
+            border
+            border-slate-200
+            bg-white
+            font-semibold
+            transition-all
+            duration-300
             hover:bg-slate-50
+            hover:border-[#01A49E]
           "
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
-            <path
-              d="M4 7h3l1 7"
-              stroke="#111827"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M11 7h8l-1 7h-8z"
-              stroke="#111827"
-              strokeWidth="1.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          Buy with PayPal
-        </button>
+          >
+            <Zap size={19} />
+            Buy Now
+          </button>
+
+        </div>
+
+        {/* Benefits */}
+
+        <div className="rounded-2xl bg-slate-50 p-4">
+
+          <div className="space-y-4">
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm">
+                <Truck
+                  size={18}
+                  className="text-[#01A49E]"
+                />
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  Free Delivery
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  Fast & secure shipping
+                </p>
+              </div>
+
+            </div>
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm">
+                <RotateCcw
+                  size={18}
+                  className="text-[#01A49E]"
+                />
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  Easy Returns
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  Hassle-free return policy
+                </p>
+              </div>
+
+            </div>
+
+            <div className="flex items-center gap-3">
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white shadow-sm">
+                <ShieldCheck
+                  size={18}
+                  className="text-[#01A49E]"
+                />
+              </div>
+
+              <div>
+                <p className="text-sm font-semibold text-slate-900">
+                  Secure Checkout
+                </p>
+
+                <p className="text-xs text-slate-500">
+                  100% protected payments
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
       </div>
 
-      {/* META */}
-      <div className="text-sm text-slate-500 space-y-1">
-        <p>
-          Ships from:{" "}
-          <span className="font-medium text-slate-700">
-            United States
-          </span>
-        </p>
-        <p>
-          Warranty:{" "}
-          <span className="font-medium text-slate-700">
-            1 year
-          </span>
-        </p>
-      </div>
-
-      {/* FOOTER */}
-      <div className="pt-3 border-t flex items-center justify-between text-sm">
-        <span className="text-slate-500">Have a question?</span>
-        <span className="font-semibold text-slate-900">
-          (+025) 3886 25 16
-        </span>
-      </div>
-
-      {/* TRUST */}
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
-          <circle
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="#cbd5e1"
-            strokeWidth="1.2"
-            fill="#f8fafc"
-          />
-          <path
-            d="M8 12h8"
-            stroke="#64748b"
-            strokeWidth="1.2"
-            strokeLinecap="round"
-          />
-        </svg>
-        Guaranteed Safe Checkout
-      </div>
     </div>
   );
 }

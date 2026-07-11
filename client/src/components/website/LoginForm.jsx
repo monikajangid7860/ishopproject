@@ -33,17 +33,17 @@ export default function LoginForm() {
         dispatch(setUser(user));
 
         /* ================= CART MERGE ================= */
-        const guestCart =
-          JSON.parse(localStorage.getItem("cart")) || [];
+        // const guestCart =
+        //   JSON.parse(localStorage.getItem("cart")) || [];
 
-        if (guestCart.length > 0) {
-          await axiosApiInstance.post("/cart/sync-cart", {
-            cart_data: guestCart,
-            source: "guest",
-          });
+        // if (guestCart.length > 0) {
+        //   await axiosApiInstance.post("/cart/sync-cart", {
+        //     cart_data: guestCart,
+        //     source: "guest",
+        //   });
 
-          localStorage.removeItem("cart");
-        }
+        //   localStorage.removeItem("cart");
+        // }
 
         /* ================= WISHLIST MERGE ================= */
         const guestWish =

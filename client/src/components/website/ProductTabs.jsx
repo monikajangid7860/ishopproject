@@ -31,37 +31,59 @@ export default function ProductTabs({ description }) {
   };
 
   return (
-    <section className="max-w-7xl mx-auto px-4 pb-10">
-      <div className="bg-white rounded-xl border border-slate-200">
-        {/* TAB HEADER */}
-        <div className="flex gap-6 px-4 pt-4 border-b border-slate-200 overflow-x-auto">
-          {tabs.map((tab) => {
-            const isActive = active === tab;
+    <section className="mx-auto max-w-7xl px-4 py-12">
 
-            return (
-              <button
-                key={tab}
-                onClick={() => setActive(tab)}
-                className={`relative pb-3 text-sm font-medium whitespace-nowrap ${
-                  isActive
-                    ? "text-slate-900"
-                    : "text-slate-500 hover:text-slate-800"
-                }`}
-              >
-                {tab}
-                {isActive && (
-                  <span className="absolute left-0 -bottom-px h-0.5 w-full bg-[#01A49E]" />
-                )}
-              </button>
-            );
-          })}
+      <div className="overflow-hidden rounded-[32px] border border-slate-200 bg-white shadow-sm">
+
+        {/* Header */}
+
+        <div className="border-b border-slate-100 bg-slate-50/60">
+
+          <div className="flex gap-3 overflow-x-auto p-4 scrollbar-hide">
+
+            {tabs.map((tab) => {
+              const isActive = active === tab;
+
+              return (
+                <button
+                  key={tab}
+                  onClick={() => setActive(tab)}
+                  className={`
+                    rounded-full
+                    px-6
+                    py-3
+                    text-sm
+                    font-semibold
+                    whitespace-nowrap
+                    transition-all
+                    duration-300
+
+                    ${
+                      isActive
+                        ? "bg-[#01A49E] text-white shadow-md"
+                        : "bg-white text-slate-600 border border-slate-200 hover:border-[#01A49E] hover:text-[#01A49E]"
+                    }
+                  `}
+                >
+                  {tab}
+                </button>
+              );
+            })}
+
+          </div>
+
         </div>
 
-        {/* TAB CONTENT */}
-        <div className="p-5 sm:p-6">
+        {/* Content */}
+
+        <div className="p-6 md:p-10">
+
           {renderContent()}
+
         </div>
+
       </div>
+
     </section>
   );
 }
