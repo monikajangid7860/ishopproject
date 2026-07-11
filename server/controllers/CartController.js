@@ -59,15 +59,9 @@ const syncCart = async (req, res) => {
     if (!user_id) {
       return res.send({ flag: 0, msg: "user_id is required" });
     }
-    console.log("===== EXISTING DB ITEMS =====");
-console.log(existingCart?.items);
-
-console.log("===== LOCAL ITEMS =====");
-console.log(localCart);
 
     const existingCart = await CartModel.findOne({ user_id });
 
-    // 🔒 HARD RULE: merge ONLY guest cart on login
     if (source !== "guest") {
       return res.send({
         flag: 1,
@@ -78,32 +72,47 @@ console.log(localCart);
 
     const localCart = normalizeLocalCart(cart_data || []);
 
+    console.log("===== EXISTING DB ITEMS =====");
+    console.log(existingCart?.items);
+
+    console.log("===== LOCAL ITEMS =====");
+    console.log(localCart);
+
     const mergedItems = mergeCartItems(
       existingCart?.items || [],
       localCart
     );
-console.log("===== MERGED ITEMS =====");
-console.log(mergedItems);
+
+    console.log("===== MERGED ITEMS =====");
+    console.log(mergedItems);
+
     const updatedCart = await CartModel.findOneAndUpdate(
       { user_id },
       { items: mergedItems },
-      { upsert: true, new: true }
+      {
+        upsert: true,
+        new: true,
+      }
     ).populate(
       "items.product_id",
       "name final_price original_price thumbnail"
     );
-console.log("RETURNING CART");
-console.log(updatedCart.items);
+
+    console.log("===== UPDATED CART =====");
+    console.log(updatedCart.items);
+
     res.send({
       flag: 1,
       msg: "Guest cart merged successfully",
       cart: updatedCart,
     });
+
   } catch (error) {
-    console.error("Cart sync error:", error);
+    console.error(error);
     res.send(messages.catch_error);
   }
 };
+  
 // const updateCart = async (req, res) => {
 //   try {
 //     const { user_id, items } = req.body;
