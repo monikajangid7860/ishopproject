@@ -290,7 +290,7 @@ export default function ProductPage({ product }) {
         className="
           fixed inset-x-4 bottom-4 z-40
           flex items-center justify-between gap-4
-          rounded-2xl bg-slate-900
+          rounded-2xl bg-slate-300
           px-5 py-3.5
           text-white
           shadow-xl shadow-slate-900/20
